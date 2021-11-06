@@ -7,10 +7,7 @@ Project Darklighter/.idea/project-template.xml
 Project Darklighter/.idea/runConfigurations.xml
 Project Darklighter/.idea/uiDesigner.xml
 Project Darklighter/untitled-unmastered.iml
-ProjectDarklighter-main.iml
-out/production/ProjectDarklighter-main/com
-out/production/ProjectDarklighter-main
-out/production
 out/
 ProjectDarklighter/out
-ProjectInfo.md
+ProjectDarklighter/ProjectInfo.md
+.idea

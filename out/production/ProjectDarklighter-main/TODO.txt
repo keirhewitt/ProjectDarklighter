@@ -1,0 +1,13 @@
+TODO:
+
+Soon
+- Figure out what kind of dungeons to create and how to do it
+- Create more types of rooms with different types of obstacles
+- Skip room function i.e. Stat roll for skipping certain rooms (Dexterity, intelligence etc)
+- Create format for viewing Character info: Stats, active debuffs, equipped items.
+- Add hallways and river rooms
+
+
+Future
+- Storage - XML
+- Incorporate a story -> XML nodes?

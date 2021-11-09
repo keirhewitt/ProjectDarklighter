@@ -1,0 +1,69 @@
+ -- pseudocode for creating Room doors
+@ProjectDarklighter
+
+IF Room first Room THEN
+
+	PREVIOUS DOOR
+	`````````````
+	No previous door
+	
+	NEXT DOOR
+	`````````
+	IF next Room HALLWAY or RIVER:
+		Next door = TOP
+	ELSE
+		Next door = Random
+		
+ELSE IF Room last Room THEN
+	
+	PREVIOUS DOOR
+	`````````````
+	Previous door = depends on previous Room door
+	
+	NEXT DOOR
+	`````````
+	No next door
+	
+ELSE
+	IF this Room ROOM && Room+2 == HALLWAY or RIVER
+	
+		PREVIOUS DOOR
+		`````````````
+		IF previous Room ROOM:
+			Previous door depends on previous Room door
+		ELSE:
+			Previous door = BOTTOM
+			
+		NEXT DOOR
+		`````````
+		Next door = ANY except BOTTOM
+	
+	IF this Room ROOM && Room+1 == HALLWAY or RIVER
+	
+		PREVIOUS DOOR
+		`````````````
+		IF previous Room ROOM:
+			Previous door depends on previous Room door
+		ELSE
+			Previous door = BOTTOM
+		
+	
+		NEXT DOOR
+		`````````
+		Next door = TOP
+		
+	IF this Room HALLWAY or RIVER
+	
+		PREVIOUS DOOR
+		`````````````
+		Previous door = BOTTOM
+		
+		NEXT DOOR
+		`````````
+		Next door = TOP
+		
+
+		
+		
+		
+		

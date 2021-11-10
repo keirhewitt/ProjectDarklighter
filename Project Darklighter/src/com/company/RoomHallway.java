@@ -6,7 +6,6 @@ package com.company;
  */
 public class RoomHallway extends Room {
 
-    public int[][] tiles = new int[7][7];
     private Dice d1 = new Dice();
 
     /**
@@ -37,7 +36,6 @@ public class RoomHallway extends Room {
         super(player, dungeon);
         create_hallway_room();
         this.player=player;
-        player.set_current_position(6, 3);
         super.setType("Hallway Room");
     }
 
@@ -89,16 +87,10 @@ public class RoomHallway extends Room {
             for (int j = 0; j < tiles[0].length; j++) {
                 tiles[i][j] = 0;
                 if (j == 3) {
-                    if (d1.chance_roll() < 0.05) {
-                        tiles[i][j] = 1;      // 5% chance for encounter on each tile
-                    } else {
-                        tiles[i][j] = 0;
-                    }
+                    tiles[i][j] = d1.tile_spawn();
                 }
             }
         }
-
-        tiles[6][3] = 2;                      // Door will always be this position for these rooms
     }
 
     public boolean check_north_hallway() {

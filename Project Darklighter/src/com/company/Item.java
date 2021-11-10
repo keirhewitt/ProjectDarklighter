@@ -146,6 +146,8 @@ public class Item implements java.io.Serializable{
     // Returns weapon weight in the format of String (to include 'kg')
     public String getWeight() { return String.format("%.2f", weight) + " kg"; }
 
+    public double get_weight_value() { return weight; }
+
     public String returnValue() { return value + " g"; }
 
     /**

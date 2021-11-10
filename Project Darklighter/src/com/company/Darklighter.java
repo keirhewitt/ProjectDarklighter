@@ -75,56 +75,13 @@ public class Darklighter  implements java.io.Serializable{
                 player = new Player(selection, "Human");
                 dungeon = new Dungeon(player);
 
-                int ind = 0;
+                /* dungeon.test_rooms(); */
 
-                for(Room r: dungeon.return_rooms_array()) {
-                    System.out.println(ind + ": " + r.getType());
-                    ind++;
-                }
                 Room first_room = dungeon.get_room(room_number);
                 first_room.enter_room();
 
                 status = true;
 
-                //player.add_to_inventory(db_.ashblossom);           // Test purposes
-                //player.add_to_inventory(db_.boar_tusk);            // Test purposes
-                //player.add_to_inventory(db_.crypt_shrooms);        // Test purposes
-                //player.add_to_inventory(db_.kohllden);             // Test purposes
-                //player.add_to_inventory(db_.wold_pelt);            // Test purposes
-                //player.add_to_inventory(db_.comfrey_root);         // Test purposes
-                //player.add_to_inventory(db_.rat_tail);             // Test purposes
-                player.add_to_inventory(db_.eyk_de_velle_blossom); // Test purposes
-                player.add_to_inventory(db_.wormgrass);            // Test purposes
-                player.add_to_inventory(db_.viruscea);             // Test purposes
-                //player.add_to_inventory(db_.bear_fat);             // Test purposes
-                player.add_to_inventory(db_.dram_soot);            // Test purposes
-                player.add_to_inventory(db_.asptongue_mold);       // Test purposes
-                player.add_to_inventory(db_.lemon);                // Test purposes
-                player.add_to_inventory(db_.bunchweed);            // Test purposes
-                player.add_to_inventory(db_.caraway_seed);         // Test purposes
-                //player.add_to_inventory(db_.basil);                // Test purposes
-                player.add_to_inventory(db_.tsuebell);             // Test purposes
-                player.add_to_inventory(db_.glowing_nettle);       // Test purposes
-                player.add_to_inventory(db_.ghostly_matter);       // Test purposes
-                player.add_to_inventory(db_.holly);                // Test purposes
-                player.add_to_inventory(db_.tess_essence);         // Test purposes
-                player.add_to_inventory(db_.cadmia);               // Test purposes
-                //player.add_to_inventory(db_.cinnamon);             // Test purposes
-                player.add_to_inventory(db_.cloves);               // Test purposes
-                //player.add_to_inventory(db_.mandrake);             // Test purposes
-                player.add_to_inventory(db_.toadstools);           // Test purposes
-                player.add_to_inventory(db_.anise);                // Test purposes
-                player.add_to_inventory(db_.chalk);                // Test purposes
-
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
-                player.add_to_inventory(db_.generate_random_normal_item());
             }
         } while (status == false);
 
@@ -170,12 +127,7 @@ public class Darklighter  implements java.io.Serializable{
 
             player.print_room_grid();
 
-            int room = dungeon.return_rooms_array().indexOf(player.getCurrent_room());
-
-            if (player.getCurrent_room().check_tiles_for_completion()) {
-                System.out.println("You have extinguished all opportunity from this room!");
-                player.add_xp(room*15);
-            }
+            check_if_room_complete(player.getCurrent_room());
 
             String choice = IO.standard_turn();
 
@@ -183,7 +135,7 @@ public class Darklighter  implements java.io.Serializable{
                 case "w", "W":
                     player.move_north();
                     if (player.is_encounter()) {                            // Move up
-                        create_encounter(room);
+                        create_encounter(player.return_encounter_type());
                     } else if (player.at_previous_door()) {
                         IO.at_previous_door();
                     } else if (player.at_next_door()) {
@@ -193,7 +145,7 @@ public class Darklighter  implements java.io.Serializable{
                 case "s", "S":
                     player.move_south();
                     if (player.is_encounter()) {                            // Move down
-                        create_encounter(room);
+                        create_encounter(player.return_encounter_type());
                     } else if (player.at_previous_door()) {
                         IO.at_previous_door();
                     } else if (player.at_next_door()) {
@@ -203,7 +155,7 @@ public class Darklighter  implements java.io.Serializable{
                 case "d", "D":
                     player.move_east();                                     // Move right
                     if (player.is_encounter()) {
-                        create_encounter(room);
+                        create_encounter(player.return_encounter_type());
                     } else if (player.at_previous_door()) {
                         IO.at_previous_door();
                     } else if (player.at_next_door()) {
@@ -213,7 +165,7 @@ public class Darklighter  implements java.io.Serializable{
                 case "a", "A":
                     player.move_west();                                     // Move left
                     if (player.is_encounter()) {
-                        create_encounter(room);
+                        create_encounter(player.return_encounter_type());
                     } else if (player.at_previous_door()) {
                         IO.at_previous_door();
                     } else if (player.at_next_door()) {
@@ -222,6 +174,9 @@ public class Darklighter  implements java.io.Serializable{
                     break;
                 case "i", "I":
                     IO.show_player_inventory(player);                       // Show player inventory
+                    break;
+                case "p", "P":
+                    System.out.println(player);
                     break;
                 case "q", "Q":
                     IO.player_quit();                                       // Quits the game
@@ -253,6 +208,29 @@ public class Darklighter  implements java.io.Serializable{
             IO.credits();
         }
 
+    }
+
+    /**
+     * Checks the current room to see if there are any 3's or 1's left
+     *
+     * If not, print message to player and gain xp
+     *
+     * NOTE: Only checks if room has not been completed yet.
+     *
+     * ...sets room = complete when room has been completed so it doesn't get checked again
+     * @param current_room
+     */
+    public static void check_if_room_complete(Room current_room) {
+
+        int room = dungeon.return_rooms_array().indexOf(player.getCurrent_room());
+
+        if (!current_room.is_complete()) {
+            if (current_room.check_tiles_for_completion()) {
+                current_room.set_room_to_complete();
+                System.out.println("You have extinguished all opportunity from this room!");
+                player.add_xp((room * 15) + 20);
+            }
+        }
     }
 
     /**
@@ -296,11 +274,11 @@ public class Darklighter  implements java.io.Serializable{
      *      ...
      *      ...
      *      ...
-     * @param room
+     * @param encounter_type - What number is on the current tile
      * @throws IOException
      * @throws InterruptedException
      */
-    public static void create_encounter(int room) throws IOException, InterruptedException {
+    public static void create_encounter(int encounter_type) throws IOException, InterruptedException {
 
         // What type of encounter?
             // Loot
@@ -308,49 +286,55 @@ public class Darklighter  implements java.io.Serializable{
             // Quest?
             // Religious monument/altar?
 
-        //int encounter_type = db_.random_loot_chance(6);
-        int encounter_type =1;
+        if (encounter_type == 1) {
 
-        switch (encounter_type) {
-            case 1:                                                     // Fight
-                System.out.println("Generating enemy from Room " + room_number);
-                fight(player, encounter.generate_enemy(player, room_number));
-                player.complete_encounter();
-                Thread.sleep(1500);
-                break;
-            case 2:                                                     // Healing Loot
-                Item random_loot = encounter.generate_random_healing_item();
-                IO.pickup_event(random_loot);
-                player.complete_encounter();
-                Thread.sleep(1500);
-                break;
-            case 3:                                                     // Weapon
-                Weapon random_weapon = encounter.generate_random_weapon();
-                IO.pickup_event(random_weapon);
-                player.complete_encounter();
-                Thread.sleep(1500);
-                break;
-            case 4:                                                     // Altar
-                Altar random_altar = encounter.generate_random_altar();
-                IO.altar_event(random_altar);
-                player.complete_encounter();
-                Thread.sleep(1500);
-                break;
-            case 5:                                                     // Food
-                Item food_item = encounter.generate_food_item();
-                IO.pickup_event(food_item);
-                player.complete_encounter();
-                Thread.sleep(1500);
-                break;
-            case 6:                                                     // Regular item
-                Item normal_item = encounter.generate_random_item();
-                IO.pickup_event(normal_item);
-                player.complete_encounter();
-                Thread.sleep(1500);
-                break;
-            default:
-                System.out.println("This is not an encounter. Error");
-                break;
+            int chance_encounter = db_.random_loot_chance(6);
+
+            switch (chance_encounter) {
+                case 1:                                                     // Fight
+                    System.out.println("Generating enemy from Room " + room_number);
+                    fight(player, encounter.generate_enemy(player, room_number));
+                    player.complete_encounter();
+                    Thread.sleep(1500);
+                    break;
+                case 2:                                                     // Healing Loot
+                    Item random_loot = encounter.generate_random_healing_item();
+                    IO.pickup_event(random_loot);
+                    player.complete_encounter();
+                    Thread.sleep(1500);
+                    break;
+                case 3:                                                     // Weapon
+                    Weapon random_weapon = encounter.generate_random_weapon();
+                    IO.pickup_event(random_weapon);
+                    player.complete_encounter();
+                    Thread.sleep(1500);
+                    break;
+                case 4:                                                     // Altar
+                    Altar random_altar = encounter.generate_random_altar();
+                    IO.altar_event(random_altar);
+                    player.complete_encounter();
+                    Thread.sleep(1500);
+                    break;
+                case 5:                                                     // Food
+                    Item food_item = encounter.generate_food_item();
+                    IO.pickup_event(food_item);
+                    player.complete_encounter();
+                    Thread.sleep(1500);
+                    break;
+                case 6:                                                     // Regular item
+                    Item normal_item = encounter.generate_random_item();
+                    IO.pickup_event(normal_item);
+                    player.complete_encounter();
+                    Thread.sleep(1500);
+                    break;
+                default:
+                    System.out.println("This is not an encounter. Error");
+                    break;
+            }
+
+        } else if (encounter_type == 3) {
+
+            sphinx_encounter();
         }
     }
 

@@ -2,6 +2,11 @@ package com.company;
 
 import java.util.*;
 
+/**
+ * Inventory contains an arraylist which holds all of the items
+ * This will have a max number and also a weight limit
+ * Players originally may only hold 16 items and/or up to 30kg
+ */
 public class Inventory implements java.io.Serializable {
 
     private Dice d1 = new Dice();
@@ -13,6 +18,7 @@ public class Inventory implements java.io.Serializable {
     private HashMap<Integer, Ingredient> ingredient_map = new HashMap<>();
     private int slots;
     private int empty_slots;
+    private double weight_limit = 30.0;
 
     // Format for tables
     public String leftAlignFormat = "| %-4d | %-29s | %-11s | %-5d | %-9d|%n";
@@ -35,43 +41,83 @@ public class Inventory implements java.io.Serializable {
      * @return boolean
      */
     public boolean replace_with(Item to_be_added, Item to_be_replaced) {
-        if (inventory_items.contains(to_be_replaced)
-                && inventory_items.get(inventory_items.indexOf(to_be_replaced)).getQuantity() == 1) {
+        if (can_hold_item_replace(to_be_added, to_be_replaced)) {
+            if (inventory_items.contains(to_be_replaced)
+                    && inventory_items.get(inventory_items.indexOf(to_be_replaced)).getQuantity() == 1) {
 
-            inventory_items.set(inventory_items.indexOf(to_be_replaced), to_be_added);
+                inventory_items.set(inventory_items.indexOf(to_be_replaced), to_be_added);
 
-            return true;
+                return true;
 
-        } else if (inventory_items.contains(to_be_replaced)
-                && inventory_items.get(inventory_items.indexOf(to_be_replaced)).getQuantity() > 1
-                && this.slots >= 1) {
+            } else if (inventory_items.contains(to_be_replaced)
+                    && inventory_items.get(inventory_items.indexOf(to_be_replaced)).getQuantity() > 1
+                    && this.slots >= 1) {
 
-            // Remove one from the quantity of the items 'to be replaced' and add the new item separately
-            inventory_items.get(inventory_items.indexOf(to_be_replaced))
-                    .decreaseQuantity(1);
-            inventory_items.add(to_be_added);
+                // Remove one from the quantity of the items 'to be replaced' and add the new item separately
+                inventory_items.get(inventory_items.indexOf(to_be_replaced))
+                        .decreaseQuantity(1);
+                inventory_items.add(to_be_added);
 
-            return true;
+                return true;
 
+            }
         }
 
         return false;
     }
 
+    /**
+     * Checks if adding the item to the inventory will push the Player over the max weight limit
+     * @param item
+     * @return
+     */
+    public boolean can_hold_item(Item item) {
+        double current_weight = get_current_weight();
 
-    // If item is gold, do not create additional gold - add to existing gold in inventory if applicable
-    // Do the same with healing items
-    // NOT weapons
+        if ((current_weight + item.get_weight_value()) > weight_limit) {
+            System.out.println("Cannot pick up " + item.getName() + " this will put you overweight!");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Checks if replacing and item with another will put the Player over max weight limit.
+     * @param added
+     * @param replaced
+     * @return
+     */
+    public boolean can_hold_item_replace(Item added, Item replaced) {
+        double current_weight = get_current_weight();
+
+        if ((current_weight + added.get_weight_value() - replaced.get_weight_value()) > weight_limit) {
+            System.out.println("Cannot replace with " + added.getName() + " this will put you overweight!");
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Checks if item will put player over weight
+     * Checks if there are empty slots available
+     * Checks if the item will be a duplicate, adds as a duplicate if necessary (increase original item quantity)
+     *
+     * If adds item, reduce empty slots
+     * @param item
+     */
     public void addToInventory(Item item) {
-        if (empty_slots > 0) {                          // If not slots left
-            if (check_duplicate(item)) {        // If inventory contains instance of item
-                add_duplicate(item);            // Add to the duplicate instead of adding a new item
-            } else {                                    // If new item, add to inventory and reduce slots
-                inventory_items.add(item);
-                this.empty_slots -= 1;
+        if (can_hold_item(item)) {
+            if (empty_slots > 0) {                          // If not slots left
+                if (check_duplicate(item)) {        // If inventory contains instance of item
+                    add_duplicate(item);            // Add to the duplicate instead of adding a new item
+                } else {                                    // If new item, add to inventory and reduce slots
+                    inventory_items.add(item);
+                    this.empty_slots -= 1;
+                }
+            } else {
+                System.out.println("There is no space left in your inventory!");
             }
-        } else {
-            System.out.println("There is no space left in your inventory!");
         }
     }
 
@@ -79,7 +125,7 @@ public class Inventory implements java.io.Serializable {
     /**
      * This just removes the item from the inventory
      *
-     * ********** Will need to make this drop to the ground
+     *
      * @param item - Item to drop
      */
     public void remove_item(Item item) {
@@ -91,14 +137,30 @@ public class Inventory implements java.io.Serializable {
         }
     }
 
+    /**
+     * Returns the number of empty slots in player inventory
+     *
+     * @return
+     */
     public int getEmpty_slots() {
         return empty_slots;
     }
 
+    /**
+     * Returns the number of free slots in the player inventory
+     *
+     * @return
+     */
     public int getSlots() {
         return slots;
     }
 
+    /**
+     * Checks to see if the item parameter contains a duplicate within the player inventory
+     *
+     * @param item
+     * @return
+     */
     public boolean check_duplicate(Item item) {
         for (Item i: inventory_items) {
             if (i instanceof Formula && item instanceof Formula) {
@@ -114,6 +176,12 @@ public class Inventory implements java.io.Serializable {
         return false;
     }
 
+    /**
+     * Adds a duplicate item to the player inventory
+     * Equality checks are => Name, Weight, Value
+     *
+     * @param item
+     */
     public void add_duplicate(Item item) {
         for (Item i: inventory_items) {
             if (i.getName().equals(item.getName()) && i.getWeight().equals(item.getWeight())
@@ -123,6 +191,10 @@ public class Inventory implements java.io.Serializable {
         }
     }
 
+    /**
+     * Displays the inventory in a format that allows the player to choose an item based on a numerical ID
+     *
+     */
     public void display_inventory() {
 
         // Might use this number system for getting the player to access the inventory items
@@ -194,6 +266,7 @@ public class Inventory implements java.io.Serializable {
 
     /**
      * get an ingredient via index from the ingredient hashmap that is created above ^
+     *
      * @param index
      * @return - Ingredient
      */
@@ -393,6 +466,11 @@ public class Inventory implements java.io.Serializable {
         return cont;
     }
 
+    /**
+     * Shows all items within the inventory, with numerical ID for options
+     *
+     * @return Boolean - if contains any items
+     */
     public boolean show_all_items() {
         int index = 1;
         int j = 0;
@@ -434,6 +512,27 @@ public class Inventory implements java.io.Serializable {
         return true;
     }
 
+    /**
+     * Sum of all items in inventory, weighed
+     *
+     * @return
+     */
+    public double get_current_weight() {
+        double current_weight = 0.00;
+        for (Item i: inventory_items) {
+            current_weight += i.get_weight_value();
+        }
+        return current_weight;
+    }
+
+    /**
+     * Choose an item from a HashMap created when displaying the player inventory items
+     *
+     * HashMap -> <Item Index, Item>
+     *
+     * @param index
+     * @return
+     */
     public Item choose_item(int index) {
         Item item = null;
 
@@ -465,15 +564,6 @@ public class Inventory implements java.io.Serializable {
 
     // Returns a random armour item
     public Armour loot_random_armour_item() { return db_.return_random_armour_item(); }
-
-    public boolean check_inventory_for_gold() {
-        for (Item i: inventory_items) {
-            if (i instanceof Currency) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     // Returns the ArrayList object
     public ArrayList<Item> return_inventory() {

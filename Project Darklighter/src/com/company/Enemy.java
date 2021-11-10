@@ -29,14 +29,14 @@ public class Enemy extends Character implements InventoryManagement, java.io.Ser
 
     public Enemy(String name, String type, Character player, int room) {
         super(name, type);
-        super.getAttack().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getDefence().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getStrength().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getDexterity().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getFaith().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getInitiative().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getIntelligence().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
-        super.getMaxHealth().setStat_level(d1.manualDiceRollBetween((room*10)-7, room*10));
+        super.getAttack().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getDefence().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getStrength().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getDexterity().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getFaith().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getInitiative().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getIntelligence().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
+        super.getMaxHealth().setStat_level(d1.manualDiceRollBetween((room*10)-7, (room*10)-2));
         super.getHealth().setStat_level(getMaxHealth().getStat_level());
         super.setLevel(calculate_level());
         this.xp = calculate_xp_reward();
@@ -194,8 +194,11 @@ public class Enemy extends Character implements InventoryManagement, java.io.Ser
 
     }
 
-    // If enemy has a healing item in their inventory, then heal random amount
-    // Otherwise, return false
+    /**
+     * If an enemy has a healing item in their inventory, then heal for a random int.
+     *
+     * @return boolean - If has healing item or not
+     */
     public boolean check_healing() {
         Item i = null;
         Iterator<Item> it = getInventory().return_inventory().iterator();

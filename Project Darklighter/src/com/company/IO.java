@@ -1917,7 +1917,8 @@ public final class IO  implements java.io.Serializable{
         System.out.println();
         System.out.print("You find '" + item.getName() + "', would you like to pick it up? (y/n) > ");
 
-        ret = Darklighter.INPUT.nextLine().trim().toLowerCase();
+        Darklighter.INPUT.nextLine();
+        ret = Darklighter.INPUT.next().trim().toLowerCase();
 
         while (!ret.equals("y") && !ret.equals("n")) {
 

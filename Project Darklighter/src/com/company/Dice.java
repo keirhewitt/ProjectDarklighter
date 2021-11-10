@@ -37,7 +37,7 @@ public class Dice implements java.io.Serializable {
     // Returns either a 1 or 0
     public int tile_spawn() {
         double tile_chance = chance_roll();
-        if (tile_chance < 0.14) {
+        if (tile_chance < 0.05) {
             return 1;
         }
         return 0;

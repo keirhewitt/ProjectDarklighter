@@ -26,6 +26,7 @@ public class Dungeon implements Serializable {
     public Dungeon(Player player) {
         this.player = player;
         generate_dungeon();
+        System.out.println("Dungeon size: " + size);
         set_doors_for_rooms();
     }
 
@@ -42,38 +43,45 @@ public class Dungeon implements Serializable {
         }
     }
 
+    /* TEST FUNCTION
+    public void test_rooms() {
+        int index = 1;
+        for (Room r: dungeon) {
+            System.out.println(IO.T_IT+"Room "+index +"("+r.getType()+"):"+IO.T_IT_RS+"\n     Previous door: " +IO.T_R+ r.get_Previous_Door_TEST() +IO.T_RS+ " / Next Door: " +IO.T_G+ r.get_Next_Door_TEST()+IO.T_RS);
+            System.out.println();
+            index++;
+        }
+    }
+     */
+
     public void dungeon_creation(int size) {
         for ( int i = 1; i <= size; i++ ) {
             if (i == size) {
                 // boss room
                 Room boss = new Room(player, this);
-                System.out.println(boss.getType());
+                //System.out.println(boss.getType());
                 dungeon.add(boss);
             }
-            if (i % 4 == 0) {
+            else if (i % 4 == 0) {
                 RoomRiver alt_room = new RoomRiver(player, this);
-                System.out.println(alt_room.getType());
+                //System.out.println(alt_room.getType());
                 dungeon.add(alt_room);
             } else {
                 if (i == 1) {
                     Room room = new Room(player, this);
-                    System.out.println(room.getType());
+                    //System.out.println(room.getType());
                     dungeon.add(room);
                 }
-                if (i > 1) {
-                    if (d1.chance_roll() < 0.30 && (dungeon.get(i - 1) instanceof RoomHallway) == false) {
+                else if (i > 1) {
+                    if (d1.chance_roll() < 0.10 && (dungeon.get(i - 2) instanceof RoomHallway) == false) {
                         RoomHallway hallway = new RoomHallway(player, this);
-                        System.out.println(hallway.getType());
+                        //System.out.println(hallway.getType());
                         dungeon.add(hallway);
                     } else {
                         Room room = new Room(player, this);
-                        System.out.println(room.getType());
+                        //System.out.println(room.getType());
                         dungeon.add(room);
                     }
-                } else {
-                    Room room = new Room(player, this);
-                    System.out.println(room.getType());
-                    dungeon.add(room);
                 }
             }
         }
@@ -93,11 +101,11 @@ public class Dungeon implements Serializable {
     }
 
     public void create_medium_dungeon() {
-        dungeon_creation(12);
+        dungeon_creation(14);
     }
 
     public void create_large_dungeon() {
-        dungeon_creation(20);
+        dungeon_creation(21);
     }
 
     public Room get_room(int room_num) {

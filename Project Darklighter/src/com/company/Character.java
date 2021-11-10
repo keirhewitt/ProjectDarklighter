@@ -241,6 +241,8 @@ public class Character implements Combat, java.io.Serializable  {
 
     public void setMaxHealth(int maxHealth) { this.maxHealth.setStat_level(maxHealth); }
 
+    public void setHealth(int health) { this.health.setStat_level(health);}
+
     public void setInitiative(int initiative) {this.initiative.setStat_level(initiative);  }
 
     public void setDexterity(int dexterity) { this.dexterity.setStat_level(dexterity); }
@@ -764,6 +766,11 @@ public class Character implements Combat, java.io.Serializable  {
         return false;
     }
 
+    /**
+     *  Return an Armour item which is levelled to the Character
+     *
+     * @return Armour
+     */
     public Armour return_levelled_armour_item() {
         Armour armour = null;
         int max_defence_rating = (int) Math.floor(this.getLevel().getStat_level()/10+5);
@@ -774,6 +781,11 @@ public class Character implements Combat, java.io.Serializable  {
         return armour;
     }
 
+    /**
+     * Return a Weapon item which is levelled to the Character
+     *
+     * @return Weapon
+     */
     public Weapon return_levelled_weapon_item() {
         Weapon weapon = null;
         int max_damage_rating = (int) Math.floor(this.getLevel().getStat_level()/10+5);

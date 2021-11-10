@@ -9,9 +9,8 @@ package com.company;
  *  0 - Free tile (Nothing)
  *  2 - Door
  *
- *  Doors will HAVE to be - at least 1 where you came in (bottom middle - [6][3])**
- *                        - Then one at another mid point in the room
- *                          i.e. [0][3], [3][0], [3][6]
+ *  Doors will be mostly randomly generated and then later rooms will have to have their doors
+ *  based on the entry and exit door placements of previous and later rooms, depending on their type.
  *
  * Player will always be facing North - 1 Door will always be [6][3]
  */
@@ -19,13 +18,17 @@ public class Room implements java.io.Serializable  {
 
     public Dungeon dungeon;
     public Dice d1 = new Dice();
-    private int[][] tiles = new int[7][7];
+    public int[][] tiles = new int[7][7];
     public Player player;
     public String middleAlignRoom = "| %-63s|";
     public boolean visited = false;
+    public boolean completed = false;
     private String type = "Room";
     int[][] previous_door;
     int[][] next_door;
+    Room prev_room = null;
+    Room next_room = null;
+    Room next_next_room = null;
 
     /**
 
@@ -211,15 +214,7 @@ public class Room implements java.io.Serializable  {
     public void create_standard_grid() {
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles[0].length; j++) {
-
-                // Set starting point in room to 0
-                if (i == 6 && j == 3) {
-                    tiles[i][j] = 2;
-                }
-
-                if (tiles[i][j] != 2) {
-                    tiles[i][j] = d1.tile_spawn(); // Returns 1 or 0 randomly
-                }
+                tiles[i][j] = d1.tile_spawn(); // Returns 1 or 0 randomly
             }
         }
     }
@@ -234,7 +229,7 @@ public class Room implements java.io.Serializable  {
         boolean complete = true;
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles[0].length; j++) {
-                if (check_tile(i, j) != 0) {
+                if (check_tile(i, j) == 1 || check_tile(i, j) == 3) {
                     complete = false;
                 }
             }
@@ -242,9 +237,55 @@ public class Room implements java.io.Serializable  {
         return complete;
     }
 
+    public void set_room_to_complete() { this.completed = true; }
+
+    public boolean is_complete() { return completed; }
+
     public int[][] getPrevious_door() { return previous_door; }
 
     public int[][] getNext_door() { return next_door; }
+
+    /**
+     * TEST FUNCTION
+     * @return String - TOP, BOTTOM, LEFT, RIGHT
+     */
+    public String get_Previous_Door_TEST() {
+        try {
+            if (getPrevious_door()[0][0] == 0 && getPrevious_door()[0][1] == 3) {
+                return "TOP";
+            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 0) {
+                return "LEFT";
+            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 6) {
+                return "RIGHT";
+            } else if (getPrevious_door()[0][0] == 6 && getPrevious_door()[0][1] == 3) {
+                return "BOTTOM";
+            }
+        } catch (NullPointerException ne) {
+            return IO.T_BL+"None"+IO.T_RS;
+        }
+        return "";
+    }
+
+    /**
+     * TEST FUNCTION
+     * @return String - TOP, BOTTOM, LEFT, RIGHT
+     */
+    public String get_Next_Door_TEST() {
+        try {
+            if (getNext_door()[0][0] == 0 && getNext_door()[0][1] == 3) {
+                return "TOP";
+            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 0) {
+                return "LEFT";
+            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 6) {
+                return "RIGHT";
+            } else if (getNext_door()[0][0] == 6 && getNext_door()[0][1] == 3) {
+                return "BOTTOM";
+            }
+        } catch (NullPointerException ne) {
+            return IO.T_BL+"None"+IO.T_RS;
+        }
+        return "";
+    }
 
 
 
@@ -278,7 +319,7 @@ public class Room implements java.io.Serializable  {
         int[][] doors = { {0, 3}, {3, 0}, {3, 6} };
 
         while(true) {
-            int[] option = doors[d1.manualDiceRoll(3) - 1];
+            int[] option = doors[d1.manualDiceRoll(3)-1];
 
             if (tiles[option[0]][option[1]] != 2) {
                 tiles[option[0]][option[1]] = 2;
@@ -286,6 +327,9 @@ public class Room implements java.io.Serializable  {
                 break;
             }
 
+        }
+        if (next_door == null) {
+            System.out.println("No door instance found for " + this.getType());
         }
     }
 
@@ -298,7 +342,7 @@ public class Room implements java.io.Serializable  {
         int[][] doors = { {0, 3}, {3, 0}, {3, 6}, {6,3} };
 
         while(true) {
-            int[] option = doors[d1.manualDiceRoll(4) - 1];
+            int[] option = doors[d1.manualDiceRoll(4)-1];
 
             if (tiles[option[0]][option[1]] != 2) {
                 tiles[option[0]][option[1]] = 2;
@@ -307,27 +351,33 @@ public class Room implements java.io.Serializable  {
             }
 
         }
+        if (next_door == null) {
+            System.out.println("No door instance found for " + this.getType());
+        }
     }
 
     /**
      * Choose random other door position - ({0,3}, {3,0}, {3,6}) - to create a door
      */
     public void set_doors() {
+
+        // Index of current room
         int this_room = dungeon.return_rooms_array().indexOf(this);
+        //System.out.println("Current room index: " + this_room);
 
-        Room next_room = null;
-
+        // If this index is at the least, 1 less than the max index, store the next available Room object in next_room
         if (this_room <= dungeon.get_size() - 2 ) {
+            //System.out.println("Getting this room, Room " + this_room + " index + 1");
             next_room = dungeon.return_rooms_array().get(this_room + 1);
         }
 
-        Room next_next_room = null;
-
+        // If this index is at the least, 2 less than the max index, store the next, next available Room object in next_next_room
         if (this_room <= dungeon.get_size() - 3) {
+            //System.out.println("Getting this room, Room " + this_room + " index + 2");
             next_next_room = dungeon.return_rooms_array().get(this_room + 2);
         }
-        Room prev_room = null;
 
+        // If this room not the first room, store the previous available Room object in prev_room
         if (this_room > 0) {
             prev_room = dungeon.return_rooms_array().get(this_room - 1);
         }
@@ -336,47 +386,28 @@ public class Room implements java.io.Serializable  {
          * If this room is the starting room, set one random door. No previous door.
          */
         if (this_room == 0) {
-            set_random_door();
+            if (next_room instanceof RoomHallway || next_room instanceof RoomRiver) {
+                tiles[0][3] = 2;
+            } else {
+                set_random_door_no_bottom();
+            }
 
             /**
              * If this room is NOT the final room
               */
-        } else if (this_room != dungeon.get_size()) {
+        } else if (this_room != dungeon.return_rooms_array().size()-1) {
 
             /**
-             * If this room instance of Room and next next room instance of Hallway or River
-             *
-             * > Set the previous door depending on the previous room
-             *
-             * > The next door cannot be bottom
-             *  -- The reason is it would be strange to go into BOTTOM of this one, come out
-             *  the next room at the TOP and then go back into the TOP into a different room
+             * If the room is instance of hallway or river, doors will always be TOP and BOTTOM
              */
-            if (this instanceof Room && (next_next_room instanceof RoomHallway || next_next_room instanceof RoomRiver)) {
-                if (prev_room instanceof Room) {
-                    if (prev_room.getNext_door()[0][0]==3 && prev_room.getNext_door()[0][1]==0) {
-                        tiles[3][6] = 2;
-                        previous_door = new int[][] {{3,6}};
-                        set_random_door_no_bottom();
-                    } else if (prev_room.getNext_door()[0][0]==3 && prev_room.getNext_door()[0][1]==6) {
-                        tiles[3][0] = 2;
-                        previous_door = new int[][] {{3,0}};
-                        set_random_door_no_bottom();
-                    } else if (prev_room.getNext_door()[0][0]==0 && prev_room.getNext_door()[0][1]==3) {
-                        tiles[6][3] = 2;
-                        previous_door = new int[][] {{6,3}};
-                        set_random_door_no_bottom();
-                    } else if (prev_room.getNext_door()[0][0]==6 && prev_room.getNext_door()[0][1]==3) {
-                        tiles[0][3] = 2;
-                        previous_door = new int[][] {{0,3}};
-                        set_random_door_no_bottom();
-                    }
-                } else {
-                    tiles[6][3] = 2;
-                    previous_door = new int[][] {{6,3}};
-                    set_random_door_no_bottom();
-                }
-
+            if (this instanceof RoomHallway || this instanceof RoomRiver) {
+                tiles[0][3] = 2;
+                tiles[6][3] = 2;
+                previous_door = new int[][] {{6,3}};
+                next_door = new int[][] {{0,3}};
+                /**
+                 If this is instance Room each 2 subsequent rooms are instance Room
+                 */
             }
             /**
              * If this room instance of Room and the next room is hallway or river
@@ -404,18 +435,43 @@ public class Room implements java.io.Serializable  {
                 tiles[0][3] = 2;
                 next_door = new int[][] {{0,3}};
             }
+
             /**
-             * If the room is instance of hallway or river, doors will always be TOP and BOTTOM
+             * If this room instance of Room and next next room instance of Hallway or River
+             *
+             * > Set the previous door depending on the previous room
+             *
+             * > The next door cannot be bottom
+             *  -- The reason is it would be strange to go into BOTTOM of this one, come out
+             *  the next room at the TOP and then go back into the TOP into a different room
              */
-            else if (this instanceof RoomHallway || this instanceof RoomRiver) {
-                tiles[0][3] = 2;
-                tiles[6][3] = 2;
-                previous_door = new int[][] {{6,3}};
-                next_door = new int[][] {{0,3}};
-                /**
-                    If this is instance Room each 2 subsequent rooms are instance Room
-                 */
-            } else {
+            else if (this instanceof Room && (next_next_room instanceof RoomHallway || next_next_room instanceof RoomRiver)) {
+                if (prev_room instanceof Room) {
+                    if (prev_room.getNext_door()[0][0]==3 && prev_room.getNext_door()[0][1]==0) {
+                        tiles[3][6] = 2;
+                        previous_door = new int[][] {{3,6}};
+                        set_random_door_no_bottom();
+                    } else if (prev_room.getNext_door()[0][0]==3 && prev_room.getNext_door()[0][1]==6) {
+                        tiles[3][0] = 2;
+                        previous_door = new int[][] {{3,0}};
+                        set_random_door_no_bottom();
+                    } else if (prev_room.getNext_door()[0][0]==0 && prev_room.getNext_door()[0][1]==3) {
+                        tiles[6][3] = 2;
+                        previous_door = new int[][] {{6,3}};
+                        set_random_door_no_bottom();
+                    } else if (prev_room.getNext_door()[0][0]==6 && prev_room.getNext_door()[0][1]==3) {
+                        tiles[0][3] = 2;
+                        previous_door = new int[][] {{0,3}};
+                        set_random_door_no_bottom();
+                    }
+                } else {
+                    tiles[6][3] = 2;
+                    previous_door = new int[][] {{6,3}};
+                    set_random_door_no_bottom();
+                }
+
+            }
+            else {
                 if (prev_room instanceof Room) {
                     if (prev_room.getNext_door()[0][0]==3 && prev_room.getNext_door()[0][1]==0) {
                         tiles[3][6] = 2;
@@ -460,6 +516,10 @@ public class Room implements java.io.Serializable  {
                 previous_door = new int[][] {{6,3}};
             }
         }
+        //if (next_door == null){
+            //System.out.println("No door set for this room." + getType());
+            //System.out.println("Room no. " + this_room);
+        //}
 
     }
 

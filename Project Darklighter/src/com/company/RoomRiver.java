@@ -2,7 +2,7 @@ package com.company;
 
 public class RoomRiver extends Room {
 
-    private int[][] tiles = new int[7][7];
+    //private int[][] tiles = new int[7][7];
     private String middleAlignRoom = "| %-63s|";
     private Player player;
     /**
@@ -33,7 +33,6 @@ public class RoomRiver extends Room {
         super(player, dungeon);
         create_river_grid();
         this.player=player;
-        player.set_current_position(6, 3);
         super.setType("River Room");
     }
 
@@ -93,9 +92,6 @@ public class RoomRiver extends Room {
                 }
             }
         }
-        // Door will always be this position for these rooms
-        tiles[0][3] = 2;
-        tiles[6][3] = 2;
     }
 
     public boolean check_river_east() {

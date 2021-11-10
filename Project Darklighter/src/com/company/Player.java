@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Player extends Character implements InventoryManagement, java.io.Serializable {
 
     private int current_xp = 1;
-    private final int[] xp_stages = {50, 100, 250, 500, 700, 950, 1150, 1400, 1700, 2100, 2550};
+    private final int[] xp_stages = {25, 50, 80, 115, 170, 250, 380, 500, 700, 950, 1150, 1400, 1700, 2100, 2550};
     private ArrayList<Formula> known_formulas;
     private ArrayList<Room> previous_rooms = new ArrayList<>();
     private int current_pos_x;
@@ -20,12 +20,15 @@ public class Player extends Character implements InventoryManagement, java.io.Se
 
     /**
      * Init Player with a name, set xp -> 1 and initialise the Player's inventory (16 slots)
+     *
      * @param name
      */
     public Player(String name, String type) {
         super(name, type);
+        super.setMaxHealth(20);
+        super.setHealth(getMaxHealth().getStat_level());
         current_xp = 1;
-        setInventory(32);
+        setInventory(16);
         pre_populate_player();
         religion = new Religion();
         known_formulas = new ArrayList<>();
@@ -92,6 +95,13 @@ public class Player extends Character implements InventoryManagement, java.io.Se
                 System.out.println("| You are now level " +IO.T_BL + getLevel().getStat_level() + IO.T_RS);
             }
         }
+
+    }
+
+    /**
+     * Player will choose a stat each level to increase by 1
+     */
+    public void choose_stat_to_increase() {
 
     }
 
@@ -230,25 +240,21 @@ public class Player extends Character implements InventoryManagement, java.io.Se
      * @return true if encounter (1) or false if not (0 or 2)
      */
     public boolean is_encounter() {
-        if (current_room instanceof RoomRiver) {
-            if (current_room.check_tile(current_pos_x, current_pos_y) == 3) {
-                System.out.println("Sphinx event");
-                return true;
-            }
-        }
-        else if (current_room instanceof RoomHallway) {
-            if (current_room.check_tile(current_pos_x, current_pos_y) == 1) {
-                return true;
-            }
+        if (current_room.check_tile(current_pos_x, current_pos_y) != 0 && current_room.check_tile(current_pos_x, current_pos_y) != 2) {
+            return true;
         }
 
-        else  {
-            if (current_room.check_tile(current_pos_x, current_pos_y) == 1) {
-                return true;
-            }
-        }
         return false;
     }
+
+    /**
+     * Returns the int type of encounter (number on the tile)
+     * @return
+     */
+    public int return_encounter_type() {
+        return current_room.check_tile(current_pos_x, current_pos_y);
+    }
+
 
     /**
      * Checks if the Player's current tile is a door

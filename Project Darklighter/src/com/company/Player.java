@@ -326,13 +326,17 @@ public class Player extends Character implements InventoryManagement, java.io.Se
         }
     }
 
-    // Called after item has been use up and needs to be either:
-    // Reduced in quantity or;
-    // Removed
+    /**
+     * After Item has been used this function will be called
+     *
+     * If item is a duplicate, reduce quantity by 1
+     * else remove item
+     * @param item
+     */
     public void has_used(Item item) {
         boolean duplicate = false;
         for (Item i: getInventory().return_inventory()) {
-            if (i.getName().equals(item.getName())) {
+            if (i.getName().equals(item.getName()) && i.get_weight_value() == item.get_weight_value() && i.getValue() == item.getValue()) {
                 if (i.getQuantity() > 1) {
                     duplicate = true;
                     i.decreaseQuantity(1);
@@ -375,6 +379,10 @@ public class Player extends Character implements InventoryManagement, java.io.Se
         return false;
     }
 
+    /**
+     * Return boolean value depending on if inventory contains at least 1 Weapon
+     * @return
+     */
     public boolean has_weapons() {
         for (Item i: getInventory().return_inventory()) {
             if (i instanceof Weapon) {
@@ -386,18 +394,24 @@ public class Player extends Character implements InventoryManagement, java.io.Se
 
     public void set_active_scripture(Scripture scripture) {
 
-        if (scripture.getType_of_modifier().toLowerCase().equals("plus")) {
-            for (Stat s: stats) {
-                if (s.equals(scripture.getStat_affected())) {
-                    s.increaseStatLevel(scripture.getEffect());
+        if (scripture.getType_of_modifier() != null) {
+
+            if (scripture.getType_of_modifier().toLowerCase().equals("plus")) {
+                for (Stat s : stats) {
+                    if (s.equals(scripture.getStat_affected())) {
+                        s.increaseStatLevel(scripture.getEffect());
+                    }
+                }
+            } else if (scripture.getType_of_modifier().toLowerCase().equals("minus")) {
+                for (Stat s : stats) {
+                    if (s.equals(scripture.getStat_affected())) {
+                        s.decreaseStatLevel(scripture.getEffect());
+                    }
                 }
             }
-        } else if (scripture.getType_of_modifier().toLowerCase().equals("minus")) {
-            for (Stat s : stats) {
-                if (s.equals(scripture.getStat_affected())) {
-                    s.decreaseStatLevel(scripture.getEffect());
-                }
-            }
+        } else {
+            System.out.println("Waiting for divine evidence of this monument's effect on you.. you are left wanting." +
+                    "\nIt seems the gods wish not to bestow their powers upon you.");
         }
     }
 
@@ -434,18 +448,19 @@ public class Player extends Character implements InventoryManagement, java.io.Se
     public Religion getReligion() { return religion; }
 
     public String toString() {
-        return  "              | " + getName().toUpperCase() + '\n' +
-                "````````````````````````" + '\n' +
-                "Attack        | " + getAttack().getStat_level() + " |" + '\n' +
-                "Strength      | " + getStrength().getStat_level() + " |" + '\n' +
-                "Defence       | " + getDefence().getStat_level() + " |" + '\n' +
-                "Dexterity     | " + getDexterity().getStat_level() + " |" + '\n' +
-                "Intelligence  | " + getIntelligence().getStat_level() + " |" + '\n' +
-                "Faith         | " + getFaith().getStat_level() + " |" + '\n' +
-                "Initiative    | " + getInitiative().getStat_level() + " |" + '\n' +
-                "Max Health    | " + getMaxHealth().getStat_level() + " |" + '\n' +
+
+        return  "              | " + getName().toUpperCase() +                 '\n' +
+                "````````````````````````" +                                   '\n' +
+                "Attack        | " + display_level(getAttack()) +       " |" + '\n' +
+                "Strength      | " + display_level(getStrength())+      " |" + '\n' +
+                "Defence       | " + display_level(getDefence()) +      " |" + '\n' +
+                "Dexterity     | " + display_level(getDexterity()) +    " |" + '\n' +
+                "Intelligence  | " + display_level(getIntelligence()) + " |" + '\n' +
+                "Faith         | " + display_level(getFaith()) +        " |" + '\n' +
+                "Initiative    | " + display_level(getInitiative()) +   " |" + '\n' +
+                "Max Health    | " + display_level(getMaxHealth()) +    " |" + '\n' +
                 "------------------------" + '\n' +
-                "Level:        | " + getLevel().getStat_level() + " |";
+                "Level:        | " + IO.T_Y+ getLevel().getStat_level() + IO.T_RS + " |";
 
     }
 

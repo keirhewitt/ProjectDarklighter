@@ -1610,12 +1610,12 @@ public final class IO  implements java.io.Serializable{
                     break;
                 case 3:
                     if (item instanceof Shield) {
-                        Darklighter.player.unequip_shield();                // If shield armour, unequip
+                        Darklighter.player.unequip_shield();                 // If shield armour, unequip
                     } else if (item instanceof Armour) {
                         if (((Armour) item).headArmour()) {
-                            Darklighter.player.unequip_head_armour();       // If head armour, unequip
+                            Darklighter.player.unequip_head_armour();        // If head armour, unequip
                         } else {
-                            Darklighter.player.unequip_chest_armour();      // If chest armour, unequip
+                            Darklighter.player.unequip_chest_armour();       // If chest armour, unequip
                         }
                     } else if (item instanceof Weapon) {
                         if (Darklighter.player.getOff_hand().equals(item)) { // If the weapon is in off-hand
@@ -1850,7 +1850,8 @@ public final class IO  implements java.io.Serializable{
         System.out.println();
         System.out.print("You come across an altar, inspect it? (y/n) > ");
 
-        ret = Darklighter.INPUT.nextLine().trim().toLowerCase();
+        Darklighter.INPUT.nextLine();
+        ret = Darklighter.INPUT.next().trim().toLowerCase();
 
         while (!ret.equals("y") && !ret.equals("n")) {
 

@@ -221,19 +221,19 @@ public class Enemy extends Character implements InventoryManagement, java.io.Ser
 
 
     public String toString() {
-        return  "              | " + getName().toUpperCase() + '\n' +
-                "````````````````````````" + '\n' +
-                "Attack        | " + getAttack().getStat_level() + " |" + '\n' +
-                "Strength      | " + getStrength().getStat_level() + " |" + '\n' +
-                "Defence       | " + getDefence().getStat_level() + " |" + '\n' +
-                "Dexterity     | " + getDexterity().getStat_level() + " |" + '\n' +
-                "Intelligence  | " + getIntelligence().getStat_level() + " |" + '\n' +
-                "Faith         | " + getFaith().getStat_level() + " |" + '\n' +
-                "Initiative    | " + getInitiative().getStat_level() + " |" + '\n' +
-                "Max Health    | " + getMaxHealth().getStat_level() + " |" + '\n' +
+        return  "              | " + getName().toUpperCase() +                 '\n' +
+                "````````````````````````" +                                   '\n' +
+                "Attack        | " + display_level(getAttack()) +       " |" + '\n' +
+                "Strength      | " + display_level(getStrength())+      " |" + '\n' +
+                "Defence       | " + display_level(getDefence()) +      " |" + '\n' +
+                "Dexterity     | " + display_level(getDexterity()) +    " |" + '\n' +
+                "Intelligence  | " + display_level(getIntelligence()) + " |" + '\n' +
+                "Faith         | " + display_level(getFaith()) +        " |" + '\n' +
+                "Initiative    | " + display_level(getInitiative()) +   " |" + '\n' +
+                "Max Health    | " + display_level(getMaxHealth()) +    " |" + '\n' +
                 "------------------------" + '\n' +
-                "Level:        | " + getLevel().getStat_level() + " |" + '\n' +
-                "XP:           | " + getXpReward() + " |";
+                "Level:        | " + IO.T_Y+ getLevel().getStat_level() + IO.T_RS + " |" + '\n' +
+                "XP:           | " + IO.T_BL + getXpReward() +IO.T_RS+ " |";
     }
 
     /**

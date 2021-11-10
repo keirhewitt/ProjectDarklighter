@@ -233,6 +233,18 @@ public class Character implements Combat, java.io.Serializable  {
 
     public String getType() { return type; }
 
+    public String display_level(Stat stat) {
+        if (stat.get_temp_stat_increase()) {
+            return IO.T_G + stat.getStat_level() + IO.T_RS;
+        } else if (stat.get_temp_stat_decrease()) {
+            return IO.T_R + stat.getStat_level() + IO.T_RS;
+        } else if (stat.get_temp_stat_increase() && stat.get_temp_stat_decrease()){
+            return IO.T_BL + stat.getStat_level() + IO.T_RS;
+        } else {
+            return Integer.toString(stat.getStat_level());
+        }
+    }
+
     public void setDefence(int defence){ this.defence.setStat_level(defence); }
 
     public void setAttack(int attack){ this.attack.setStat_level(attack); }
@@ -426,11 +438,10 @@ public class Character implements Combat, java.io.Serializable  {
         return active_status_effects;
     }
 
-
     /**
      * Checks if the weapon has a Formula applied to it
      * @param w
-     * @return
+     * @return - Boolean
      */
     public boolean weapon_has_formula(Weapon w) {
         if (w.getCurrent_effect() != null) {
@@ -440,7 +451,9 @@ public class Character implements Combat, java.io.Serializable  {
     }
     /**
      * When a weapon attacks, pass the Formula from it through here to get the StatusEffect it
+     *
      * will inflict on the opponent from the Formula
+     *
      * @param f - Weapon Formula
      * @return StatusEffect/null
      */
@@ -472,7 +485,9 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Add a status effect to HashMap
+     *
      * If status effect already exists, replace old value with new value i.e. restart the amount of turns
+     *
      * @param statusEffect
      */
     public void add_status_effect(StatusEffect statusEffect) {
@@ -529,6 +544,7 @@ public class Character implements Combat, java.io.Serializable  {
      * This is called during 'add_status_effect' so that the value is only added ONCE.
      *
      * Does the Stat alter for STATIC status effects
+     *
      * @param statusEffect
      */
     public void process_static_status_effects(StatusEffect statusEffect) {
@@ -537,9 +553,9 @@ public class Character implements Combat, java.io.Serializable  {
                     .equals(statusEffect.getStat_affected()
                             .getName().toLowerCase())) {
                 if (statusEffect.getType() == StatusEffectType.STATIC_MINUS) {
-                    s.decreaseStatLevel(statusEffect.getAmount_per_turn());                 // If it's a static minus, add the value back on to the stat
+                    s.temporary_stat_decrease(statusEffect.getAmount_per_turn());           // If it's a static minus, add the value back on to the stat
                 } else {
-                    s.increaseStatLevel(statusEffect.getAmount_per_turn());                 // Else, subtract from the stat to get to the original value
+                    s.temporary_stat_increase(statusEffect.getAmount_per_turn());                 // Else, subtract from the stat to get to the original value
                 }
             }
         }
@@ -557,8 +573,10 @@ public class Character implements Combat, java.io.Serializable  {
                             .getName().toLowerCase())) {
                 if (statusEffect.getType() == StatusEffectType.STATIC_MINUS) {
                     s.increaseStatLevel(statusEffect.getAmount_per_turn());                 // If it's a static minus, add the value back on to the stat
+                    s.remove_temp_stat_decrease();
                 } else {
                     s.decreaseStatLevel(statusEffect.getAmount_per_turn());                 // Else, subtract from the stat to get to the original value
+                    s.remove_temp_stat_increase();
                 }
             }
         }
@@ -596,7 +614,9 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Creates custom StatusEffect for stat debuff
+     *
      * Stat is reduced to [amount] for [num_turns] turns
+     *
      * @param amount
      * @param num_turns
      * @return StatusEffect
@@ -608,7 +628,9 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Creates custom StatusEffect for stat debuff
+     *
      * Stat is increased to [amount] for [num_turns] turns
+     *
      * @param amount
      * @param num_turns
      * @return StatusEffect
@@ -620,6 +642,7 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Returns status of 'died' variable
+     *
      * @return boolean
      */
     public boolean hasDied() {
@@ -628,6 +651,7 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Initialises ability descriptions and adds them to the abilities HashMap
+     *
      */
     public void init_abilities_array() {
 
@@ -677,6 +701,7 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Displays this characters resistances during combat
+     *
      */
     public void show_character_resistances() {
         System.out.println("Fire resistance      | " + this.fire_resistance + "%");
@@ -688,11 +713,13 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Checks all Abilities against Character Stats and returns those that the Character can use
+     *
      * Returned in HashMap format <Int, Ability>
      *     This is so that it can be displayed in a combat menu as:
      *     (int)1. (ability)Pirouette Strike
      *     (int)2. (ability)Upward Slash
      *     ...etc ..
+     *
      * @return HashMap<Integer, Ability>
      */
     public HashMap<Integer, Ability> compile_active_abilities_and_return() {
@@ -721,6 +748,7 @@ public class Character implements Combat, java.io.Serializable  {
      * 1. Slash
      * 2. Crush
      * 3. ...etc
+     *
      */
     public void show_player_abilities_in_battle() {
         compile_active_abilities_and_return();
@@ -731,6 +759,7 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Finds the given Ability Stat in Character's stats and checks if Character meet's the requirement to use it
+     *
      * @param ability - Ability to check
      * @param character - Character
      * @return true/false
@@ -739,24 +768,24 @@ public class Character implements Combat, java.io.Serializable  {
         for (Stat s: character.stats) {
             if (s.equals(ability.getStat())) {
 
-                // Does character stat level match?
+                /* Does character stat level match? */
                 if (s.getStat_level() >= ability.getStat_requirement())     {
 
-                    // Is the attack_type an attack?
+                    /* Is the attack_type an attack? */
                     if (ability.getWeapon_type() != AttackType.NA)     {
 
-                        // Does the weapon attack style match?
+                        /* Does the weapon attack style match? */
                         if (character.getEquipped_weapon().getAttack_style() == ability.getWeapon_type()) {
                                 return true;
 
-                        // If Shield ATTACK ability, does character have a shield?
+                        /* If Shield ATTACK ability, does character have a shield? */
                         } else if (ability.isShield() && character.off_hand instanceof Shield) {
                             return true;
                         } else  {
                             return false;
                         }
 
-                        // If Shield DEFENCE ability, does character have a shield?
+                        /* If Shield DEFENCE ability, does character have a shield? */
                     } else if (ability.isShield() && character.off_hand instanceof Shield){
                         return true;
                     }
@@ -767,7 +796,7 @@ public class Character implements Combat, java.io.Serializable  {
     }
 
     /**
-     *  Return an Armour item which is levelled to the Character
+     * Return an Armour item which is levelled to the Character
      *
      * @return Armour
      */
@@ -882,6 +911,7 @@ public class Character implements Combat, java.io.Serializable  {
 
     /**
      * Returns any Formula applied to the Weapon, else returns null
+     *
      * @return Formula
      */
     public Formula get_weapon_formula() {
@@ -1099,15 +1129,16 @@ public class Character implements Combat, java.io.Serializable  {
 
         }
 
+        /*  Stores value inside formula property of weapon  */
         formula = get_weapon_formula();
 
-        // If armour is present and has > 0 durability, block some damage
+        /*  If armour is present and has > 0 durability, block some damage  */
         if (damage > 0) {
             damage = return_damage_after_armour_defense(damage, defender);
         }
 
-        // Only print this if attack was supposed to do damage
-        // i.e. not for steadfast block or combat profile
+        /* Only print this if attack was supposed to do damage
+            i.e. not for steadfast block or combat profile  */
         if (attack) {
             if (damage <= 0) {
 

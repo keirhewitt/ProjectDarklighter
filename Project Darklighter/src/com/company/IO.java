@@ -1,6 +1,5 @@
 package com.company;
 
-import javax.sound.midi.SysexMessage;
 import java.io.IOException;
 import java.util.*;
 
@@ -90,6 +89,18 @@ public final class IO  implements java.io.Serializable{
         System.out.println();
         System.out.println();
         System.out.print(">  ");
+    }
+
+    public static void load_game_intro() throws InterruptedException {
+        System.out.println("Game state loaded.");
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        Thread.sleep(2500);
+        System.out.println("Welcome, " +IO.T_BL + Darklighter.player.getName()+IO.T_RS);
+        Thread.sleep(3000);
+        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" +
+                "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     }
 
     /**
@@ -218,7 +229,7 @@ public final class IO  implements java.io.Serializable{
             show_player_inventory(Darklighter.player);
         } catch (NumberFormatException nf) {
             System.out.println("You need to enter a number");
-        } catch (NullPointerException | InterruptedException np) {
+        } catch (NullPointerException n) {
             System.out.println("** Please choose an item from the list **");
             show_player_inventory(Darklighter.player);
         }
@@ -425,6 +436,10 @@ public final class IO  implements java.io.Serializable{
                 + T_R
                 + Darklighter.enemies_killed
                 + T_RS);
+        if (Darklighter.check_if_room_complete(Darklighter.player.getCurrent_room())) {
+            System.out.println("You have extinguished all opportunity from this room!");
+            System.out.println();
+        }
         System.out.println();
         System.out.print("Enter a command > ");
 
@@ -441,18 +456,16 @@ public final class IO  implements java.io.Serializable{
     public static void print_help() {
 
         System.out.println("--Movement:");
-        System.out.println("    "+IO.T_Y+"'w' - move North"+IO.T_RS);
-        System.out.println("    "+IO.T_Y+"'d' - move East"+IO.T_RS);
-        System.out.println("    "+IO.T_Y+"'s' - move South"+IO.T_RS);
-        System.out.println("    "+IO.T_Y+"'a' - move West"+IO.T_RS);
-        System.out.println("--Quit: ");
-        System.out.println(IO.T_Y+"    'q'"+IO.T_RS);
-        System.out.println("--Examine: ");
-        System.out.println(IO.T_Y+"    'e'"+IO.T_RS);
-        System.out.println("Inventory:");
-        System.out.println(IO.T_Y+"    'i'"+IO.T_RS);
-        System.out.println("Alchemy:");
-        System.out.println(IO.T_Y+"    'f'"+IO.T_RS);
+        System.out.println("    "+IO.T_Y+"'w' - Move North"+IO.T_RS);
+        System.out.println("    "+IO.T_Y+"'d' - Move East"+IO.T_RS);
+        System.out.println("    "+IO.T_Y+"'s' - Move South"+IO.T_RS);
+        System.out.println("    "+IO.T_Y+"'a' - Move West"+IO.T_RS);
+        System.out.println("--Interactions: ");
+        System.out.println("    "+IO.T_Y+"'e' - Examine"+IO.T_RS);
+        System.out.println("    "+IO.T_Y+"'i' - Inventory"+IO.T_RS);
+        System.out.println("    "+IO.T_Y+"'f' - Alchemy"+IO.T_RS);
+        System.out.println("--Game: ");
+        System.out.println("    "+IO.T_Y+"'q' - Quit"+IO.T_RS);
 
     }
 
@@ -468,26 +481,6 @@ public final class IO  implements java.io.Serializable{
      *
      * @return boolean
      * @throws IOException
-     *
-     *
-     *
-     * ************************************
-     * ************************************
-     * ************************************
-     *
-     * <<< ERROR WITH THIS LOOP WHEN EXITING AFTER TRYING TO CRAFT ITEM, CHOOSING INVALID CONTAINER
-     * THEN ENTERING 'E' TO EXIT THE MENU, IT RE_PROMPTS MULTIPLE TIMES BEFORE ACCEPTING THE EXIT COMMAND
-     *
-     * ************************************
-     * ************************************
-     * ************************************
-     *
-     *
-     *
-     *
-     *
-     *
-     *
      */
     public static boolean open_alchemy_crafting() throws IOException, InterruptedException {
 
@@ -502,17 +495,21 @@ public final class IO  implements java.io.Serializable{
             System.out.println("Enter one of the numbers to edit the ingredient section: ");
             System.out.print(" > ");
 
-            choice = Darklighter.INPUT.nextLine();
+            choice = Darklighter.INPUT.next();
 
             if (!choice.equals("e")) {                  // Enter 'e' to exit this menu
 
-                if (choice.toLowerCase().equals("z")
-                        && Darklighter.player.get_alchemy().check_formula()) {   // Enter 'z' to craft the item
-                    if (craft_alchemy_item()) {
+                if (choice.toLowerCase().equals("z") && Darklighter.player.get_alchemy().check_formula()) {     // Enter 'z' to craft the item
+                    if (craft_alchemy_item()) {     // If formula has been crafted, return true
+                        Thread.sleep(1500);
                         return true;
                     } else {
-                        open_alchemy_crafting();            // Return to alchemy UI on unsuccessful craft
+                        continue;      // If function to craft formula is exited, return to top of this function
                     }
+                } else if (choice.toLowerCase().equals(("z")) && !Darklighter.player.get_alchemy().check_formula()) {    // If crafting fails, return to top of function
+                    System.out.println(T_IT+"Your crafting attempts yield unsuccessful results."+T_RS);
+                    Thread.sleep(1500);
+                    continue;
                 }
 
                 try {
@@ -520,9 +517,9 @@ public final class IO  implements java.io.Serializable{
                     DECISION = Integer.parseInt(choice);  // Otherwise, try to cast as int
 
                 } catch (NumberFormatException e) {                             // Catch Format exception for errors
-                    System.out.println("Please enter a relevant command.");
+                    System.out.println("Please enter a number from the list or 'e' to exit.");
                     System.out.println();
-                    open_alchemy_crafting();
+                    continue;
                 }
 
                 switch (DECISION) {
@@ -644,6 +641,7 @@ public final class IO  implements java.io.Serializable{
                             }
                         }
                         break;
+
                     default:
                         System.out.println("Incorrect value entered.");
                         break;
@@ -663,35 +661,40 @@ public final class IO  implements java.io.Serializable{
      */
     public static Ingredient choose_ingredient(int num) {
 
-        boolean chosen = false;
         Item ingredient_chosen = null;
         String choice = "";
 
-        while (!chosen) {
+        while (true) {
 
-            Darklighter.player.getInventory().show_all_ingredients();           // Display Ingredients
+            if (!Darklighter.player.getInventory().show_all_ingredients()) {          // Display Ingredients
 
-            try {
-                System.out.print("Select an ingredient ("+num+") > ");
+                System.out.println("You have no ingredients in your inventory!");
+                break;
 
-                choice = Darklighter.INPUT.nextLine();
+            } else {
+                try {
+                    System.out.print("Select an ingredient for slot (" + num + ") > ");
 
-                if (choice.equals("e")) {                                       // If player wants to exit this
-                    return null;
+                    choice = Darklighter.INPUT.next();
+
+                    if (choice.equals("e")) {                                       // If player wants to exit this
+                        return null;
+                    }
+
+                    ingredient_chosen = Darklighter                                 // Otherwise get the ingredient
+                            .player
+                            .getInventory()
+                            .choose_ingredient(Integer.parseInt(choice));
+
+                    break;                                                 // Set 'chosen' to true
+
+                } catch (IndexOutOfBoundsException ie) {                            // If index not in array
+                    System.out.println("Please select a numeric index from the list.");
+                    continue;
+                } catch (NumberFormatException ne) {                                // If num not given
+                    System.out.println("Please enter 'e' to quit or select a number from the Ingredients list.");
+                    continue;
                 }
-
-                ingredient_chosen = Darklighter                                 // Otherwise get the ingredient
-                        .player
-                        .getInventory()
-                        .choose_ingredient(Integer.parseInt(choice));
-
-                chosen = true;                                                  // Set 'chosen' to true
-            } catch (IndexOutOfBoundsException ie) {                            // If index not in array
-                System.out.println("That was not an ingredient.");
-                choose_ingredient(num);
-            } catch (NumberFormatException ne) {                                // If num not given
-                System.out.println("Please enter 'e' to quit or select a number from the Ingredients list.");
-                choose_ingredient(num);
             }
         }
         return (Ingredient) ingredient_chosen;
@@ -706,23 +709,25 @@ public final class IO  implements java.io.Serializable{
         String choice = "";
         System.out.println("Would you like to ("+T_Y+"c"+T_RS+")hange or ("+T_Y+"r"+T_RS+")emove ingredient?");
 
-        try {
-            choice = Darklighter.INPUT.nextLine();
-        } catch (ClassCastException ce) {
-            System.out.println("Please enter either 'c' or 'r'");
-            System.out.println();
-            change_or_remove_ingredient();
+        while (true) {
+            System.out.print(" > ");
+            try {
+                choice = Darklighter.INPUT.next();
+            } catch (ClassCastException ce) {
+                System.out.println("Please enter either 'c' or 'r'");
+                System.out.println();
+                continue;
+            }
+            if (choice.toLowerCase().equals("c")) {
+                return true;
+            } else if (choice.toLowerCase().equals("r")) {
+                return false;
+            } else {
+                System.out.println("Please enter 'c' or 'r' for change/remove");
+                System.out.println();
+                continue;
+            }
         }
-        if (choice.equals("c")) {
-            return true;
-        } else if (choice.equals("r")) {
-            return false;
-        } else {
-            System.out.println("Please enter 'c' or 'r' for change/remove");
-            System.out.println();
-            change_or_remove_ingredient();
-        }
-        return false;
     }
 
     public static boolean craft_alchemy_item() throws InterruptedException {
@@ -739,47 +744,50 @@ public final class IO  implements java.io.Serializable{
         System.out.println("Choose an item to store this in.");
         System.out.print(" > ");
 
-        choice = Darklighter.INPUT.nextLine();
+        while(true) {
 
-        if (!choice.equals("e")) {
+            choice = Darklighter.INPUT.next();
 
-            try {
+            if (choice.toLowerCase().equals("e")) {
+                return false;
+            } else {
 
-                DECISION = Integer.parseInt(choice);
-                container = Darklighter.player.getInventory().choose_item(DECISION);
-                crafted_formula = Darklighter.player.get_alchemy().craft_formula(container);
+                try {
 
-                if (crafted_formula == null) {
-                    System.out.println("Cannot store "
-                            + Darklighter.player.get_alchemy().the_formula.getName()
-                            + " inside " + container.getName()
-                            + ".");
-                    Thread.sleep(2500);
-                    return false;
-                } else {
-                    System.out.println(crafted_formula.getName() + " created.");
-                    System.out.println(crafted_formula.getName());          // Works
-                    System.out.println(crafted_formula.getGroup());         // Works
-                    System.out.println(crafted_formula.getContainer());     // Works
-                    System.out.println(crafted_formula.getType());          // This is null ?? Should be populated
-                    System.out.println(crafted_formula.getDescription());   // This is null ?? Should be ""
-                    if (Darklighter.player.getInventory().replace_with(crafted_formula,container)) {
-                        return true;// Remove container
+                    DECISION = Integer.parseInt(choice);
+                    container = Darklighter.player.getInventory().choose_item(DECISION);
+                    crafted_formula = Darklighter.player.get_alchemy().craft_formula(container);
+
+                    if (crafted_formula == null) {
+                        System.out.println("Cannot store "
+                                + Darklighter.player.get_alchemy().active_formula.getName()
+                                + " inside " + container.getName()
+                                + ".");
+                        Thread.sleep(2500);
+                        return false;
                     } else {
-                        System.out.println("Error adding to inventory.");
+                        System.out.println(crafted_formula.getName() + " created.");
+                        System.out.println(crafted_formula.getName());          // Works
+                        System.out.println(crafted_formula.getGroup());         // Works
+                        System.out.println(crafted_formula.getContainer());     // Works
+                        System.out.println(crafted_formula.getType());          // This is null ?? Should be populated
+                        System.out.println(crafted_formula.getDescription());   // This is null ?? Should be ""
+                        if (Darklighter.player.getInventory().replace_with(crafted_formula, container)) {
+                            return true;// Remove container
+                        } else {
+                            System.out.println("Error adding to inventory.");
+                        }
                     }
+
+                } catch (NumberFormatException ne) {
+                    System.out.println("Please enter a numerical value.");
+                    continue;
+                } catch (NullPointerException ne) {
+                    System.out.println("That is not an item, please choose a number from the list.");
+                    continue;
                 }
-
-            } catch (NumberFormatException ne) {
-                System.out.println("Please enter a numerical value.");
-                craft_alchemy_item();
-            } catch (NullPointerException ne) {
-                System.out.println("That is not an item, please choose a number from the list.");
-                craft_alchemy_item();
             }
-
         }
-        return false;
 
     }
 
@@ -793,29 +801,31 @@ public final class IO  implements java.io.Serializable{
      */
     public static void show_player_inventory(Player player) {
 
+        String choice = "";
         System.out.println("\n\n\n\n\n\n\n");
 
+        // CHANGE HERE 'player.display_inventory()'
         player.display_inventory();
         System.out.println();
-        System.out.println("Choose an Item or press 'X' to return > ");
+        System.out.print("Select a number from the list, or enter 'x' to return > ");
 
-        String choice = Darklighter.INPUT.next();
+        choice = Darklighter.INPUT.next();
 
         if (!choice.equals("x")) {                                      // If player hasn't chosen to exit
 
             try {                                                       // Try and use the item selected
-                DECISION = Integer.parseInt(choice);
+                DECISION = Integer.parseInt(choice);    // If input not 'x', parse as Integer
                 Item chosen_item = player.getInventory().return_inventory().get(Integer.parseInt(choice)-1);
-
                 item_options(chosen_item, Darklighter.player);
 
             } catch (IndexOutOfBoundsException io) {                    // If choice not in the list shown
-                System.out.println("** Invalid choice, please choose from the list **");
+                System.out.println("Number not present in list!");
                 show_player_inventory(player);
             } catch (NumberFormatException | InterruptedException e) {  // If input is not a number
-                System.out.println("Exiting inventory...");
+                System.out.println("You need to enter a numerical value from the list, or 'x' to exit.");
+                show_player_inventory(player);
             } catch (NullPointerException np) {  // If item is null
-                System.out.println("** Please choose an item from the list **");
+                System.out.println("Item does not exist!");
                 show_player_inventory(player);
             }
         }
@@ -848,22 +858,10 @@ public final class IO  implements java.io.Serializable{
      */
     public static void item_options(Item item, Player player) throws InterruptedException {
 
-        if (item instanceof Weapon || item instanceof Shield || item instanceof Armour) {
-
-            use_weapon_armour_shield_item(item);
-        }
-        else if (item instanceof Formula || item instanceof Ingredient) {
-
-            use_formula_ingredient(item);
-        }
-        else if (item instanceof Currency) {
-
-            use_currency_item(item);
-        }
-        else {
-
-            use_general_item(item);
-        }
+        if (item instanceof Weapon || item instanceof Shield || item instanceof Armour) { use_weapon_armour_shield_item(item); }
+        else if (item instanceof Formula || item instanceof Ingredient) { use_formula_ingredient(item); }
+        else if (item instanceof Currency) { use_currency_item(item); }
+        else { use_general_item(item); }
 
         System.out.println();
         System.out.println();
@@ -957,6 +955,8 @@ public final class IO  implements java.io.Serializable{
         } else if (list.get(0) instanceof Formula && list.get(1) instanceof Weapon ||
                 list.get(1) instanceof Formula && list.get(0) instanceof Weapon) {
 
+            System.out.println("This is a formula and weapon combination.");
+
             Formula f = null;
             Weapon w = null;
 
@@ -991,63 +991,76 @@ public final class IO  implements java.io.Serializable{
      * @return
      */
     public static boolean splits(Item item) {
-        // Vial, Scrap of Paper, Wooden Bowl, Quill, Basket
+        int r = -2;  // Remaining items (if added multiple items and there were some that could not fit in inventory)
+        Item item_after_split = null;   // Assign the subsequent item(s) (after split) to this variable
+
         if (item.has_item_type(ItemType.SPLITS)) {
+
             if (item.getName().equals("Cloth") || item.getName().equals("Bandage")) {
-                Item rags = new Item("Rags","Torn and used cloth rag.", 0.0012, 2, false, 0,
+
+                item_after_split = new Item("Rags","Torn and used cloth rag.", 0.0012, 2, false, 0,
                         new ItemType[]{ItemType.WRITABLE,ItemType.ABSORBS,ItemType.WRITABLE});
-                Darklighter.player.getInventory().replace_with(rags, item);
-                Darklighter.player.add_to_inventory(rags);
+                Darklighter.player.getInventory().replace_with(item_after_split, item);
+                Darklighter.player.add_to_inventory(item_after_split);
                 System.out.println("You cut " + item.getName() + " into rags.");
                 return true;
+
             } else if (item.getName().equals("Tunic")) {
-                Item rags = new Item("Rags","Torn and used cloth rag.", 0.0012, 2, false, 0,
+
+                item_after_split = new Item("Rags","Torn and used cloth rag.", 0.0012, 2, false, 0,
                         new ItemType[]{ItemType.WRITABLE,ItemType.ABSORBS,ItemType.WRITABLE});
-                Darklighter.player.getInventory().replace_with(rags, item);
-                Darklighter.player.add_to_inventory(rags);
-                Darklighter.player.add_to_inventory(rags);
-                Darklighter.player.add_to_inventory(rags);
-                Darklighter.player.add_to_inventory(rags);
+                Darklighter.player.getInventory().replace_with(item_after_split, item);
+                r = Darklighter.player.add_to_inventory(item_after_split, 4);
                 return true;
+
             } else if (item.getName().equals("Rags")) {
-                Item torn_cloth_strands = new Item("Torn cloth strands","Ripped from a larger thread.", 0.0004, 3, false, 0,
+
+                item_after_split = new Item("Torn cloth strands","Ripped from a larger thread.", 0.0004, 3, false, 0,
                         new ItemType[]{ItemType.WRITABLE,ItemType.ABSORBS});
-                Darklighter.player.getInventory().replace_with(torn_cloth_strands, item);
-                Darklighter.player.add_to_inventory(torn_cloth_strands);
-                Darklighter.player.add_to_inventory(torn_cloth_strands);
+                Darklighter.player.getInventory().replace_with(item_after_split, item);
+                Darklighter.player.add_to_inventory(item_after_split, 2);
+
             } else if (item.getName().equals("Vial")) {
-                Item glass_shards = new Item("Glass Shards","Sharp glass fragments, splintered from a small object.", 0.00013, 5, false, 0,
+
+                item_after_split = new Item("Glass Shards","Sharp glass fragments, splintered from a small object.", 0.00013, 12, false, 0,
                         new ItemType[]{ItemType.NA});
-                Darklighter.player.getInventory().replace_with(glass_shards, item);
-                Darklighter.player.add_to_inventory(glass_shards);
-                Darklighter.player.add_to_inventory(glass_shards);
+                Darklighter.player.getInventory().replace_with(item_after_split, item);
+                Darklighter.player.add_to_inventory(item_after_split, 2);
+
             } else if (item.getName().equals("Scrap of Paper")) {
 
             } else if (item.getName().equals("Wooden Bowl")) {
+
+                item_after_split = new Item("Wooden Scraps", "Distressed small wooden shavings.", 0.0043, 9, false, 0,
+                        new ItemType[]{ItemType.FUEL});
+                Darklighter.player.getInventory().replace_with(item_after_split, item);
+                Darklighter.player.add_to_inventory(item_after_split, 6);
 
             } else if (item.getName().equals("Quill")) {
 
             } else if (item.getName().equals("Basket")) {
 
+                item_after_split = new Item("Wooden Scraps", "Distressed small wooden shavings.", 0.0043, 9, false, 0,
+                        new ItemType[]{ItemType.FUEL});
+                Darklighter.player.getInventory().replace_with(item_after_split, item);
+                Darklighter.player.add_to_inventory(item_after_split, 4);
+
             }
         }
+        if (r == -2) { return false; }          // No operation has taken place
+        else if ( r == -1 ) { return false; }    // No space for any of the items
+        else if ( r == 0 ) { return true; }         // All items added successfully
+        else { handle_remaining_items(item_after_split, r); }   // Handle the items left over, if some could not be added
         return false;
     }
 
     public static boolean absorbs(Item item, Item liquid) {
         if (item.has_item_type(ItemType.ABSORBS)) {
             item.soak(liquid);
-            System.out.println("You soak " + item.getName() + " with " + liquid.getName() + ".");
             return true;
         }
         return false;
     }
-
-    public static void set_alight(Item fuel) {
-        fuel.set_alight();
-    }
-
-    public static void extinguish(Item fuel) { fuel.extinguish(); }
 
     public static void write_on(Item surface) {
 
@@ -1112,7 +1125,8 @@ public final class IO  implements java.io.Serializable{
             System.out.println();
 
             System.out.print("Select a weapon > ");
-            int choice = Integer.parseInt(Darklighter.INPUT.nextLine());
+            Darklighter.INPUT.nextLine();
+            int choice = Integer.parseInt(Darklighter.INPUT.next());
 
             try {
                 player.setEquipped_weapon(player
@@ -1304,36 +1318,17 @@ public final class IO  implements java.io.Serializable{
     }
 
     public static void use_currency_item(Item item) {
-        DECISION = 0;
 
-        give_item_options(item);        // Display options for interacting with a general item
-
-        while(true) {
-
-            try {
-                DECISION = Darklighter.INPUT.nextInt();
-                Darklighter.INPUT.nextLine();
-            } catch (InputMismatchException ie) {
-                System.out.println();
-            }
-
-            if (DECISION < 1 || DECISION > 4) {
-                System.out.println("Please enter a value from 1-4");
-                System.out.print(" > ");
-            } else {
-                break;
-            }
-
-            Darklighter.INPUT.nextLine();
-        }
+        DECISION = prompt_use_item(item, 4);
 
         switch (DECISION) {
+            case 0: return;
             case 1:
-                System.out.println("Split, Implement later");
+                System.out.println("PLACEHOLDER: Split function for currency.");
                 break;
             case 2:
-                System.out.println(T_IT+item.getDescription()+T_IT_RS);
-                if (!item.get_writings().isEmpty()) {
+                System.out.println(T_IT+item.getDescription()+T_IT_RS); // Display description
+                if (!item.get_writings().isEmpty()) {   // Check if item has any text written on it by player/pre-loaded writings
                     System.out.println();
                     System.out.println(T_Y+"Writings: "+T_RS);
                     System.out.println(T_IT+item.get_writings()+T_IT_RS);
@@ -1349,7 +1344,7 @@ public final class IO  implements java.io.Serializable{
                 Darklighter.player.remove_from_inventory(item);
                 break;
             default:
-                System.out.println("Error in code logic");          // ##### TEMP
+                System.out.println("Invalid list item chosen.");          // ##### TEMP
                 break;
         }
 
@@ -1365,32 +1360,13 @@ public final class IO  implements java.io.Serializable{
      * @param item
      */
     public static void use_general_item(Item item ) {
-        DECISION = 0;
-
-        give_item_options(item);        // Display options for interacting with a general item
 
         if (item.isHealing_item()) {
 
-            while(true) {
-
-                try {
-                    DECISION = Darklighter.INPUT.nextInt();
-                    Darklighter.INPUT.nextLine();
-                } catch (InputMismatchException ie) {
-                    System.out.println();
-                }
-
-                if (DECISION < 1 || DECISION > 5) {
-                    System.out.println("Please enter a value from 1-5");
-                    System.out.print(" > ");
-                } else {
-                    break;
-                }
-
-                Darklighter.INPUT.nextLine();
-            }
+            DECISION = prompt_use_item(item, 5);
 
             switch (DECISION) {
+                case 0: return;
                 case 1:
                     // Clear elements list, to add next items
                     combination_item.clear();
@@ -1400,7 +1376,7 @@ public final class IO  implements java.io.Serializable{
                     System.out.println("Select an item to combine with: ");
                     System.out.print(" > ");
 
-                    String choice = Darklighter.INPUT.nextLine();
+                    String choice = Darklighter.INPUT.next();
 
                     if (!choice.equals("x")) {                                      // If player hasn't chosen to exit
 
@@ -1451,26 +1427,10 @@ public final class IO  implements java.io.Serializable{
 
         } else {                // Non-healing general item
 
-            while(true) {
-
-                try {
-                    DECISION = Darklighter.INPUT.nextInt();
-                    Darklighter.INPUT.nextLine();
-                } catch (InputMismatchException ie) {
-                    System.out.println();
-                }
-
-                if (DECISION < 1 || DECISION > 4) {
-                    System.out.println("Please enter a value from 1-4");
-                    System.out.print(" > ");
-                } else {
-                    break;
-                }
-
-                Darklighter.INPUT.nextLine();
-            }
+            DECISION = prompt_use_item(item, 4);
 
             switch (DECISION) {
+                case 0: return;
                 case 1:
                     // Clear elements list, to add next items
                     combination_item.clear();
@@ -1521,7 +1481,7 @@ public final class IO  implements java.io.Serializable{
                     Darklighter.player.remove_from_inventory(item);
                     break;
                 default:
-                    System.out.println("Error in code logic");          // ##### TEMP
+                    System.out.println("Invalid number from list chosen.");          // ##### TEMP
                     break;
             }
 
@@ -1539,36 +1499,23 @@ public final class IO  implements java.io.Serializable{
         System.out.println();
         System.out.println("The contents go all over you!");
         Darklighter.player.consume_formula(f);
+        // ########################################################################
+        // Include chance for formula to spill onto Armour/Weapon/other item etc...
+        // ########################################################################
     }
 
+    /**
+     * Prompt player for options when choosing a Weapon or Armour Item
+     * @param item
+     */
     public static void use_weapon_armour_shield_item(Item item) {
 
-        DECISION = 0;
-
-        give_item_options(item);        // Display options for interacting with a general item
-
-        while(true) {
-
-            try {
-                DECISION = Darklighter.INPUT.nextInt();
-                Darklighter.INPUT.nextLine();
-            } catch (InputMismatchException ie) {
-                System.out.println();
-            }
-
-            if (DECISION < 1 || DECISION > 5) {
-                System.out.println("Please enter a value from 1-5");
-                System.out.print(" > ");
-            } else {
-                break;
-            }
-
-            Darklighter.INPUT.nextLine();
-        }
+        DECISION = prompt_use_item(item, 5);
 
         if (Darklighter.player.isEquipped(item)) {
 
             switch (DECISION) {
+                case 0: return;
                 case 1:
                     combination_item.clear();
 
@@ -1577,7 +1524,7 @@ public final class IO  implements java.io.Serializable{
                     System.out.println("Select an item to combine with: ");
                     System.out.print(" > ");
 
-                    String choice = Darklighter.INPUT.nextLine();
+                    String choice = Darklighter.INPUT.next();
 
                     if (!choice.equals("x")) {                                      // If player hasn't chosen to exit
 
@@ -1642,13 +1589,14 @@ public final class IO  implements java.io.Serializable{
                     Darklighter.player.remove_from_inventory(item);
                     break;
                 default:
-                    System.out.println("Error in code logic");          // ##### TEMP
+                    System.out.println("Invalid item from list chosen.");          // ##### TEMP
                     break;
             }
 
         } else {
 
             switch (DECISION) {
+                case 0: return;
                 case 1:
                     combination_item.clear();
 
@@ -1657,7 +1605,7 @@ public final class IO  implements java.io.Serializable{
                     System.out.println("Select an item to combine with: ");
                     System.out.print(" > ");
 
-                    String choice = Darklighter.INPUT.nextLine();
+                    String choice = Darklighter.INPUT.next();
 
                     if (!choice.equals("x")) {                                      // If player hasn't chosen to exit
 
@@ -1716,30 +1664,10 @@ public final class IO  implements java.io.Serializable{
 
     public static void use_formula_ingredient(Item item) throws InterruptedException {
 
-        DECISION = 0;
-
-        give_item_options(item);           // Display options for interacting with Formula
-
-        while(true) {
-
-            try {
-                DECISION = Darklighter.INPUT.nextInt();
-                Darklighter.INPUT.nextLine();
-            } catch (InputMismatchException ie) {
-                System.out.println();
-            }
-
-            if (DECISION < 1 || DECISION > 5) {
-                System.out.println("Please enter a value from 1-5");
-                System.out.print(" > ");
-            } else {
-                break;
-            }
-
-            Darklighter.INPUT.nextLine();
-        }
+        DECISION = prompt_use_item(item, 5);
 
         switch(DECISION) {
+            case 0: return;
             case 1:
                 combination_item.clear();
 
@@ -1748,7 +1676,7 @@ public final class IO  implements java.io.Serializable{
                 System.out.println("Select an item to combine with: ");
                 System.out.print(" > ");
 
-                String choice = Darklighter.INPUT.nextLine();
+                String choice = Darklighter.INPUT.next();
 
                 if (!choice.equals("x")) {                                      // If player hasn't chosen to exit
 
@@ -1805,6 +1733,30 @@ public final class IO  implements java.io.Serializable{
 
     }
 
+    public static int prompt_use_item(Item item, int choiceBounds) {
+        DECISION = 0;
+        String choice = "";
+
+        while(true) {
+            System.out.println(T_Y+"Enter 0 to exit"+T_RS);
+            give_item_options(item);        // Display options for interacting with a general item
+            choice = Darklighter.INPUT.next();
+            try {
+                DECISION = Integer.parseInt(choice);
+            } catch (NumberFormatException ne) {
+                System.out.println("Please enter a numerical value.");
+                continue;
+            }
+            if (DECISION < 0 || DECISION > choiceBounds) {
+                System.out.println("Please enter a value from 1-"+choiceBounds+", or 0 to exit");
+                continue;
+            } else {
+                break;
+            }
+        }
+        return DECISION;
+    }
+
     /**
      * Prompts player with yes/no to confirm an action
      * @param message
@@ -1823,7 +1775,7 @@ public final class IO  implements java.io.Serializable{
             System.out.println();
             System.out.print("Invalid input, please enter 'y' or 'n' > ");
 
-            ret = Darklighter.INPUT.nextLine().trim().toLowerCase();
+            ret = Darklighter.INPUT.next().trim().toLowerCase();
         }
 
         if (ret.equals("y")) {
@@ -1850,7 +1802,7 @@ public final class IO  implements java.io.Serializable{
         System.out.println();
         System.out.print("You come across an altar, inspect it? (y/n) > ");
 
-        Darklighter.INPUT.nextLine();
+        Darklighter.INPUT.next();
         ret = Darklighter.INPUT.next().trim().toLowerCase();
 
         while (!ret.equals("y") && !ret.equals("n")) {
@@ -1858,7 +1810,7 @@ public final class IO  implements java.io.Serializable{
             System.out.println();
             System.out.print("Invalid input, please enter 'y' or 'n' > ");
 
-            ret = Darklighter.INPUT.nextLine().trim().toLowerCase();
+            ret = Darklighter.INPUT.next().trim().toLowerCase();
         }
 
         if (ret.equals("y")) {
@@ -1872,7 +1824,7 @@ public final class IO  implements java.io.Serializable{
                 System.out.println("'" + altar.getAlignment().toString() + "'");
                 System.out.println();
                 System.out.print("Accept the lessons from this altar? (y/n) > ");
-                if (Darklighter.INPUT.nextLine().equals("y")) {
+                if (Darklighter.INPUT.next().equals("y")) {
                     Darklighter.player.getReligion().setAlignment(altar.getGod());
                     System.out.println();
                     System.out.println();
@@ -1918,7 +1870,6 @@ public final class IO  implements java.io.Serializable{
         System.out.println();
         System.out.print("You find '" + item.getName() + "', would you like to pick it up? (y/n) > ");
 
-        Darklighter.INPUT.nextLine();
         ret = Darklighter.INPUT.next().trim().toLowerCase();
 
         while (!ret.equals("y") && !ret.equals("n")) {
@@ -1926,7 +1877,7 @@ public final class IO  implements java.io.Serializable{
             System.out.println();
             System.out.print("Invalid input, please enter 'y' or 'n' > ");
 
-            ret = Darklighter.INPUT.nextLine().trim().toLowerCase();
+            ret = Darklighter.INPUT.next().trim().toLowerCase();
         }
 
         if (ret.equals("y")) {
@@ -1939,7 +1890,52 @@ public final class IO  implements java.io.Serializable{
         }
     }
 
+    public void apply_item_formula(Formula f) {
+        Item chosen_item = null;
 
+        System.out.println();
+
+        Darklighter.INPUT.next();
+        show_player_inventory(Darklighter.player);
+
+        System.out.println(IO.T_Y+"Enter 'x' to exit."+IO.T_RS);
+        System.out.println();
+        System.out.println("Which item would you like to apply this to?");
+        System.out.print(" > ");
+
+        String choice = Darklighter.INPUT.next();
+
+        if (!choice.equals("x")) {                                      // If player hasn't chosen to exit
+
+            try {                                                       // Try and use the item selected
+                DECISION = Integer.parseInt(choice);
+                chosen_item = Darklighter.player.getInventory().return_inventory().get(Integer.parseInt(choice)-1);
+
+            } catch (IndexOutOfBoundsException io) {                    // If choice not in the list shown
+                System.out.println("** Invalid choice, please choose from the list **");
+                show_player_inventory(Darklighter.player);
+            } catch (NumberFormatException ne) {  // If input is not a number
+                System.out.println("Exiting inventory...");
+            } catch (NullPointerException np) {  // If item is null
+                System.out.println("** Please choose an item from the list **");
+                show_player_inventory(Darklighter.player);
+            }
+        }
+
+        if (chosen_item instanceof Weapon && f.isWeapon_formula()) {
+            Darklighter.player.apply_formula(f, chosen_item);
+        } else if (chosen_item instanceof Armour && f.isArmour_formula()) {
+            Darklighter.player.apply_formula(f, chosen_item);
+        } else {
+            System.out.println("You cannot apply " +IO.T_G+ f.getName() +IO.T_RS+ " to " +IO.T_BL+ chosen_item.getName() +IO.T_RS+ ".");
+        }
+    }
+
+
+    /**
+     * Present the player with options for interacting with Item, depending on what type of Item it is
+     * @param i - Item
+     */
     public static void give_item_options(Item i) {
 
         System.out.println();
@@ -2019,6 +2015,11 @@ public final class IO  implements java.io.Serializable{
         }
     }
 
+    public static void handle_remaining_items(Item item, int number_of) {
+        System.out.println("There are " + number_of + " " + item.getName() + "'s left over.");
+    }
+    
+    
     public static void give_altar_options(Altar a) {
 
         System.out.println();
@@ -2028,7 +2029,7 @@ public final class IO  implements java.io.Serializable{
         System.out.println("2. Examine");
         System.out.println("3. Offer");              // Offer an Item to Altar
         System.out.println("4. Curse");              // Curse the Altar
-        System.out.println("5. Destroy");             // Destroy the Altar
+        System.out.println("5. Destroy");            // Destroy the Altar
         System.out.print(" > ");
     }
 
@@ -2049,7 +2050,7 @@ public final class IO  implements java.io.Serializable{
     public static void player_quit() throws IOException {
         System.out.println("\n\n\n");
         System.out.print("Would you like to save your game? (y/n)");
-        if (Darklighter.INPUT.nextLine().equals("y")) {
+        if (Darklighter.INPUT.next().equals("y")) {
             Darklighter.player_save();
         } else {
             System.exit(0);

@@ -25,10 +25,8 @@ public class Player extends Character implements InventoryManagement, java.io.Se
      */
     public Player(String name, String type) {
         super(name, type);
-        super.setMaxHealth(20);
-        super.setHealth(getMaxHealth().getStat_level());
         current_xp = 1;
-        setInventory(16);
+        setInventory(28);     // PLEASE CHANGE THIS BACK (16)
         pre_populate_player();
         religion = new Religion();
         known_formulas = new ArrayList<>();
@@ -133,7 +131,7 @@ public class Player extends Character implements InventoryManagement, java.io.Se
 
 
     /**
-     * --- Movement
+     * --- Room navigation
      */
     public void move_north() {
 
@@ -261,15 +259,24 @@ public class Player extends Character implements InventoryManagement, java.io.Se
      * @return true if door (2) false if not (0 or 1)
      */
     public boolean at_next_door() {
-        if (current_room.check_tile(current_pos_x, current_pos_y) == 2) {
+        if (current_room.getNext_door() == null) {
+            return false;
+         }else if (current_room.check_tile(current_pos_x, current_pos_y) == 2
+                && this.current_pos_x == current_room.getNext_door()[0][0] && this.current_pos_y == current_room.getNext_door()[0][1] ) {
             return true;
         }
         return false;
     }
 
+    /**
+     * Checks if the player's current tile is the door that leads to the previous room (door the player came in through)
+     * @return
+     */
     public boolean at_previous_door() {
-        if (current_room.check_tile(current_pos_x, current_pos_y) == 2
-        && this.current_pos_x == 6 && this.current_pos_y == 3 ) {
+        if (current_room.getPrevious_door() == null) {
+            return false;
+        } else if (current_room.check_tile(current_pos_x, current_pos_y) == 2
+        && this.current_pos_x == current_room.getPrevious_door()[0][0] && this.current_pos_y == current_room.getPrevious_door()[0][1] ) {
             return true;
         }
         return false;
@@ -429,6 +436,26 @@ public class Player extends Character implements InventoryManagement, java.io.Se
         }
         System.out.println("No space in inventory to add " + item.getName() + "!");
         return false;
+    }
+
+    /**
+     * Overloaded version of 'add_to_inventory' - for adding multiple of one item
+     * @param item
+     * @param number
+     * @return
+     */
+    public int add_to_inventory(Item item, int number) {
+        int remainder = 0;
+        if (getInventory().getEmpty_slots() >= 1) {
+            remainder = getInventory().addToInventory(item, number);
+        } else {
+            System.out.println("No space in inventory to add " + item.getName() + "!");
+            return -1;
+        }
+        if (remainder > 0) {
+            return remainder;
+        }
+        return 0;
     }
 
     /**

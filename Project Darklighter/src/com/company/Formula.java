@@ -31,17 +31,19 @@ package com.company;
  */
 public class Formula extends Item {
 
-    private boolean known;          // Does the player know the formula?
-    private Item container;         // What container is used to store this
-    private Ingredient[] recipe;    // Ingredients necessary to create object
-    private Consistency group;     // What consistency the formula has
-    private String stat_affected;   // What stat the formula targets, if one
-    private int amount_affected;    // What amount of effect the formula has on the Stat/what it affects
-    private double item_mod;        // If formula affects Item, how much by (percentage)
-    private String operator;        // Determines what type of relation the affected amount has on the stat: ['+' ,'-' ,'*', '/']
-    private boolean stat_formula;   // True if affects Stat
-    private boolean item_formula;   // True if affects Item
-    private int turns_stat_affected;// Number of turns the stat formula is active for/spaces moved if not in combat
+    private boolean known;                  // Does the player know the formula?
+    private Item container;                 // What container is used to store this
+    private Ingredient[] recipe;            // Ingredients necessary to create object
+    private Consistency group;              // What consistency the formula has
+    private String stat_affected;           // What stat the formula targets, if one
+    private int amount_affected;            // What amount of effect the formula has on the Stat/what it affects
+    private double item_mod;                // If formula affects Item, how much by (percentage)
+    private String operator;                // Determines what type of relation the affected amount has on the stat: ['+' ,'-' ,'*', '/']
+    private boolean stat_formula;           // True if affects Stat
+    private boolean item_formula;           // True if affects Item
+    private int turns_stat_affected;        // Number of turns the stat formula is active for/spaces moved if not in combat
+    private boolean weapon_formula=false;   // Is the formula made for applying to weapons?
+    private boolean armour_formula=false;   // Is the formula made for applying to armour?
 
     /**
      * Constructor for Stat Formula's i.e. Health/dexterity potions etc.. These will be integer based
@@ -91,7 +93,8 @@ public class Formula extends Item {
      * @param container
      */
     public Formula(Ingredient[] recipe, String name, int price, String description,
-                   Consistency group, double item_mod, String operator, Item container) {
+                   Consistency group, double item_mod, String operator, Item container,
+                    boolean weapon, boolean armour) {
         super(name, false, new ItemType[]{ItemType.NA});
         super.setValue(price);
         super.setType("Alchemy");
@@ -105,6 +108,8 @@ public class Formula extends Item {
         this.operator=operator;
         this.stat_formula=false;
         this.item_formula=true;
+        this.weapon_formula=weapon;
+        this.armour_formula=armour;
     }
 
     /**
@@ -136,4 +141,8 @@ public class Formula extends Item {
     public String getOperator()         { return operator; }
 
     public int getTurns_stat_affected() { return turns_stat_affected; }
+
+    public boolean isWeapon_formula() { return weapon_formula; }
+
+    public boolean isArmour_formula() { return armour_formula; }
 }

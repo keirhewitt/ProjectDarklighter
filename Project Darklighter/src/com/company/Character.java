@@ -60,8 +60,8 @@ public class Character implements Combat, java.io.Serializable  {
     /**
         Stats
                 */
-    public Stat maxHealth = new Stat("Max Health", "Maximum Health Value.", 10);
-    public Stat health = new Stat("Health", "Current Health.", 10);
+    public Stat maxHealth = new Stat("Max Health", "Maximum Health Value.", 100);
+    public Stat health = new Stat("Health", "Current Health.", 100);
     public Stat level = new Stat("Level", "Current Level.", 3);
     public Stat strength = new Stat("Strength", "Melee Power.", d1.manualDiceRollBetween(3,10));
     public Stat attack = new Stat("Attack", "Attack accuracy.", d1.manualDiceRollBetween(3,10));
@@ -753,7 +753,7 @@ public class Character implements Combat, java.io.Serializable  {
     public void show_player_abilities_in_battle() {
         compile_active_abilities_and_return();
         for (Map.Entry<Integer, Ability> set : active_abilities.entrySet()) {
-            System.out.println("    ["+set.getKey() + "] " + set.getValue().getName());
+            System.out.println(IO.T_P+"  ["+set.getKey() + "] " +IO.T_RS+ set.getValue().getName());
         }
     }
 
@@ -806,7 +806,6 @@ public class Character implements Combat, java.io.Serializable  {
         do {
             armour = db_.return_random_armour_item();
         } while (armour.getDefence_rating() > max_defence_rating);
-
         return armour;
     }
 
@@ -821,7 +820,6 @@ public class Character implements Combat, java.io.Serializable  {
         do {
             weapon = db_.return_random_weapon();
         } while (weapon.getMax_damage() > max_damage_rating);
-
         return weapon;
     }
 
@@ -925,25 +923,27 @@ public class Character implements Combat, java.io.Serializable  {
     public String toString() {
         return  "              | " + name + '\n' +
                 "---------------------------" + '\n' +
-                "Attack        | " + getAttack().getStat_level() + " |" + '\n' +
-                "Strength      | " + getStrength().getStat_level() + " |" + '\n' +
-                "Defence       | " + getDefence().getStat_level() + " |" + '\n' +
-                "Dexterity     | " + getDexterity().getStat_level() + " |" + '\n' +
-                "Intelligence  | " + getIntelligence().getStat_level() + " |" + '\n' +
-                "Faith         | " + getFaith().getStat_level() + " |" + '\n' +
-                "Initiative    | " + getInitiative().getStat_level() + " |" + '\n' +
-                "Max Health    | " + getMaxHealth().getStat_level() + " |" + '\n' +
+                "Attack        | " + display_level(getAttack()) + " |" + '\n' +
+                "Strength      | " + display_level(getStrength()) + " |" + '\n' +
+                "Defence       | " + display_level(getDefence()) + " |" + '\n' +
+                "Dexterity     | " + display_level(getDexterity()) + " |" + '\n' +
+                "Intelligence  | " + display_level(getIntelligence()) + " |" + '\n' +
+                "Faith         | " + display_level(getFaith()) + " |" + '\n' +
+                "Initiative    | " + display_level(getInitiative()) + " |" + '\n' +
+                "Max Health    | " + display_level(getMaxHealth()) + " |" + '\n' +
+                "---------------------------" + '\n' +
                 "Level:        | " + getLevel().getStat_level();
     }
 
     // Interface methods
     @Override
     public void attack(Character attacker, Weapon weapon, Character defender, Ability attack_type) {
-        int damage = 0;
-        int bonus_damage = 0;
-        boolean attack = true;
-        StatusEffect statusEffect = null;
-        Formula formula = null;
+        int damage = 0;                     // Base damage
+        int bonus_damage = 0;               // Weapon specific bonus damage
+        double s_e_inflict_chance = 0.8;    // Chance to inflict Status Effect
+        boolean attack = true;              // Is the combat move an attack?
+        StatusEffect statusEffect = null;   // The Status Effect attempted to inflict(if applicable)
+        Formula formula = null;             // Applied Weapon formula i.e. Poison on Sword
 
         if (attack_type.getWeapon_type() != AttackType.NA) {
 
@@ -974,10 +974,10 @@ public class Character implements Combat, java.io.Serializable  {
             System.out.println(attacker.getName()+ " skillfully pirouettes into a slashing strike..");
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll(dexterity.statRoll())/3 + 1);
+                bonus_damage = (int)(d1.manualDiceRoll(attacker.getDexterity().statRoll())/3 + 1);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = pirouette_strike.getStatusEffect();
                 }
@@ -990,10 +990,10 @@ public class Character implements Combat, java.io.Serializable  {
                     + " down upon " + defender.getName() + " in a crushing blow!");
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll(strength.statRoll())/3 + 1);
+                bonus_damage = (int)(d1.manualDiceRoll(attacker.getStrength().statRoll())/3 + 1);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = maul.getStatusEffect();
                 }
@@ -1005,10 +1005,10 @@ public class Character implements Combat, java.io.Serializable  {
                     " towards the midriff of " + defender.getName()+ "!");
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll(dexterity.statRoll())/4 + 3);
+                bonus_damage = (int)(d1.manualDiceRoll(attacker.getDexterity().statRoll())/4 + 3);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = lunging_stab.getStatusEffect();
                 }
@@ -1030,10 +1030,10 @@ public class Character implements Combat, java.io.Serializable  {
 
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll((dexterity.statRoll()) /3) + (strength.getStat_level() / 3) + 1);
+                bonus_damage = (int)(d1.manualDiceRoll((attacker.getDexterity().statRoll()) /3) + (strength.getStat_level() / 3) + 1);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = spinning_kick.getStatusEffect();
                 }
@@ -1045,10 +1045,10 @@ public class Character implements Combat, java.io.Serializable  {
             System.out.println(attacker.getName() + " smites their opponent with " + attacker.getEquipped_weapon().getName() + "!");
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll((strength.statRoll()) / 4) + 6);
+                bonus_damage = (int)(d1.manualDiceRoll((attacker.getStrength().statRoll()) / 4) + 6);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = smite.getStatusEffect();
                 }
@@ -1061,10 +1061,10 @@ public class Character implements Combat, java.io.Serializable  {
 
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll(strength.statRoll())/3 + 2);
+                bonus_damage = (int)(d1.manualDiceRoll(attacker.getStrength().statRoll())/3 + 2);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = haymaker.getStatusEffect();
                 }
@@ -1077,8 +1077,8 @@ public class Character implements Combat, java.io.Serializable  {
 
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll(defence.statRoll())/3 + 2);
-                if (d1.chance_roll() < 0.3)
+                bonus_damage = (int)(d1.manualDiceRoll(attacker.getDefence().statRoll())/3 + 2);
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = shield_bash.getStatusEffect();
                 }
@@ -1092,10 +1092,10 @@ public class Character implements Combat, java.io.Serializable  {
 
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll(strength.statRoll())/4 + 7);
+                bonus_damage = (int)(d1.manualDiceRoll(attacker.getStrength().statRoll())/4 + 7);
                 damage += bonus_damage;
 
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = upward_slash.getStatusEffect();
                 }
@@ -1109,9 +1109,9 @@ public class Character implements Combat, java.io.Serializable  {
 
             if (damage > 0)
             {
-                bonus_damage = (int)(d1.manualDiceRoll((dexterity.statRoll()) / 3) + 4 + (faith.statRoll()) / 3);
+                bonus_damage = (int)(d1.manualDiceRoll((attacker.getDexterity().statRoll()) / 3) + 4 + (faith.statRoll()) / 3);
                 damage += bonus_damage;
-                if (d1.chance_roll() < 0.3)
+                if (d1.chance_roll() < s_e_inflict_chance)
                 {
                     statusEffect = hermes_rush.getStatusEffect();
                 }

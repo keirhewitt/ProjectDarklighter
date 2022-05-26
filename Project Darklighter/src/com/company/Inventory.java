@@ -45,7 +45,8 @@ public class Inventory implements java.io.Serializable {
             if (inventory_items.contains(to_be_replaced)
                     && inventory_items.get(inventory_items.indexOf(to_be_replaced)).getQuantity() == 1) {
 
-                inventory_items.set(inventory_items.indexOf(to_be_replaced), to_be_added);
+                remove_item(to_be_replaced);
+                addToInventory(to_be_added);
 
                 return true;
 
@@ -56,7 +57,7 @@ public class Inventory implements java.io.Serializable {
                 // Remove one from the quantity of the items 'to be replaced' and add the new item separately
                 inventory_items.get(inventory_items.indexOf(to_be_replaced))
                         .decreaseQuantity(1);
-                inventory_items.add(to_be_added);
+                addToInventory(to_be_added);
 
                 return true;
 
@@ -116,9 +117,28 @@ public class Inventory implements java.io.Serializable {
                     this.empty_slots -= 1;
                 }
             } else {
-                System.out.println("There is no space left in your inventory!");
+                return;
             }
         }
+    }
+
+    public int addToInventory(Item item, int number_of_items) {
+        for (int i = 0; i < number_of_items; i++) {
+            if (can_hold_item(item)) {
+                if (empty_slots > 0) {                          // If not slots left
+                    if (check_duplicate(item)) {        // If inventory contains instance of item
+                        add_duplicate(item);            // Add to the duplicate instead of adding a new item
+                    } else {                                    // If new item, add to inventory and reduce slots
+                        inventory_items.add(item);
+                        this.empty_slots -= 1;
+                    }
+                } else {
+                    System.out.println("There is no space left in your inventory! Added " + i + " of: " +IO.T_B+ item.getName() +IO.T_RS);
+                    return number_of_items - i; // Return the remainder if not all could be added
+                }
+            }
+        }
+        return 0; // If all added, return 0 (none left over)
     }
 
 
@@ -553,6 +573,7 @@ public class Inventory implements java.io.Serializable {
         return db_.return_random_weapon();
     }
 
+    // Returns a random valuable Item
     // Returns a random valuable Item
     public Item loot_random_valuable_item() {
         return db_.return_random_valuable_item();

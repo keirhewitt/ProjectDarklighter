@@ -7,6 +7,7 @@ import java.util.List;
 public class Alchemy {
 
     private DB_ db_ = new DB_();
+    private Dice d1 = new Dice();
     private ArrayList<Formula> known_recipes = new ArrayList<>();
     private ArrayList<Formula> unknown_recipes = new ArrayList<>();
     public String leftAlignFormat = "| %-13s | %-47s |%n";
@@ -17,7 +18,7 @@ public class Alchemy {
     private Ingredient ingredient3 = null;
     private Ingredient ingredient4 = null;
     private Ingredient ingredient5 = null;
-    public Formula the_formula = null;
+    public Formula active_formula = null;
 
     // Formula Ingredient lists
     public Ingredient[] mini_health_plus = new Ingredient[2];
@@ -52,7 +53,7 @@ public class Alchemy {
     public Formula truer_strike_oil =
             new Formula(weapon_damage_oil_plus, "Truer Strike Oil", 50,
                     "Gives the applied weapon an edge against humanoids.", Consistency.LIQUID,
-                    1.15, "*",null);   // Increased weapon damage
+                    1.15, "*",null,true,false);   // Increased weapon damage
 
     public Formula menial_poison =
             new Formula(mini_poison, "Menial Poison", 32,
@@ -120,25 +121,33 @@ public class Alchemy {
          */
         mini_health_plus[0]= db_.comfrey_root;
         mini_health_plus[1]= db_.rat_tail;
+        //mini_health_plus = new Ingredient[]{db_.comfrey_root, db_.rat_tail};
 
         weapon_damage_oil_plus[0]= db_.holly;
         weapon_damage_oil_plus[1]= db_.cadmia;
         weapon_damage_oil_plus[2]= db_.dram_soot;
+        //weapon_damage_oil_plus = new Ingredient[]{db_.holly, db_.cadmia, db_.dram_soot};
 
         mini_defence_plus[0]=db_.viruscea;
         mini_defence_plus[1]=db_.dram_soot;
         mini_defence_plus[2]=db_.chalk;
+        //mini_defence_plus = new Ingredient[]{db_.viruscea, db_.dram_soot, db_.chalk};
+
 
         mini_defence_minus[0]=db_.crypt_shrooms;
         mini_defence_minus[1]=db_.dram;
         mini_defence_minus[2]=db_.wormgrass;
+        //mini_defence_minus = new Ingredient[]{db_.crypt_shrooms, db_.dram, db_.wormgrass};
 
         potent_poison[0]=db_.toadstools;
         potent_poison[1]=db_.bear_fat;
         potent_poison[2]=db_.cadmia;
+        //potent_poison = new Ingredient[]{db_.toadstools, db_.bear_fat, db_.cadmia};
 
         mini_poison[0]=db_.glowing_nettle;
         mini_poison[1]=db_.cloves;
+        //mini_poison = new Ingredient[]{db_.glowing_nettle, db_.cloves};
+
 
         mini_intelligence_plus[0]=db_.asptongue_mold;
         mini_intelligence_plus[1]=db_.tess_essence;
@@ -193,6 +202,36 @@ public class Alchemy {
 
     }
 
+    /**
+     * Pre-population method - REMOVE LATER
+     * @return
+     */
+    public Formula TEST_return_formulas() {
+        Formula[] formulas = new Formula[7];
+
+        Formula a = club_foot_concoction;
+        Formula b = discernment_essence;
+        Formula c = draught_of_frailty;
+        Formula d = truer_strike_oil;
+        Formula e = menial_poison;
+        Formula f = weed_brain;
+        Formula g = potion_of_diminutive_size;
+
+        formulas[0]=a;
+        formulas[1]=b;
+        formulas[2]=c;
+        formulas[3]=d;
+        formulas[4]=e;
+        formulas[5]=f;
+        formulas[6]=g;
+
+        return formulas[d1.manualDiceRoll(formulas.length)-1];
+    }
+
+    /**
+     * Add to Player's known_recipes once recipe is found
+     * @param formula
+     */
     public void discover_formula(Formula formula) {
         known_recipes.add(formula);
     }
@@ -227,7 +266,7 @@ public class Alchemy {
 
         String[] check = check_current_ingredients.toArray(new String[check_current_ingredients.size()]);
 
-        if (is_formula(check)) {                // This function will alter the 'the_formula' String if true
+        if (is_formula(check)) {                // This function will alter the 'active_formula' String if true
             return true;
         }
         return false;
@@ -255,25 +294,25 @@ public class Alchemy {
                     /**
                      * -- CONTAINER items can hold LIQUID,GAS,SALVE,POWDER + MAGIC formula's
                      */
-                    if (the_formula.getGroup() == Consistency.LIQUID
-                            || the_formula.getGroup() == Consistency.GAS
-                            || the_formula.getGroup() == Consistency.SALVE
-                            || the_formula.getGroup() == Consistency.POWDER
-                            || the_formula.getGroup() == Consistency.MAGIC) {  // Containers can hold these types
+                    if (active_formula.getGroup() == Consistency.LIQUID
+                            || active_formula.getGroup() == Consistency.GAS
+                            || active_formula.getGroup() == Consistency.SALVE
+                            || active_formula.getGroup() == Consistency.POWDER
+                            || active_formula.getGroup() == Consistency.MAGIC) {  // Containers can hold these types
 
                         /**
                          * -- If it's a stat altering formula, create with this constructor
                          */
-                        if (the_formula.isStat_formula()) {     // If formula is a stat altering formula
-                            Formula crafted_stat_formula = new Formula(the_formula.getRecipe(),
-                                    the_formula.getName(),
-                                    the_formula.getValue(),
-                                    the_formula.getDescription(),
-                                    the_formula.getGroup(),
-                                    the_formula.getStat_affected(),
-                                    the_formula.getAmount_affected(),
-                                    the_formula.getTurns_stat_affected(),
-                                    the_formula.getOperator(),
+                        if (active_formula.isStat_formula()) {     // If formula is a stat altering formula
+                            Formula crafted_stat_formula = new Formula(active_formula.getRecipe(),
+                                    active_formula.getName(),
+                                    active_formula.getValue(),
+                                    active_formula.getDescription(),
+                                    active_formula.getGroup(),
+                                    active_formula.getStat_affected(),
+                                    active_formula.getAmount_affected(),
+                                    active_formula.getTurns_stat_affected(),
+                                    active_formula.getOperator(),
                                     container);
 
                             return crafted_stat_formula;
@@ -281,16 +320,19 @@ public class Alchemy {
                         /**
                          * -- If it's an item altering formula, create with the other constructor
                          */
-                        } else if (the_formula.isItem_formula()) { // If formula is an Item formula
+                        } else if (active_formula.isItem_formula()) { // If formula is an Item formula
 
-                            Formula crafted_item_formula = new Formula(the_formula.getRecipe(),
-                                    the_formula.getName(),
-                                    the_formula.getValue(),
-                                    the_formula.getDescription(),
-                                    the_formula.getGroup(),
-                                    the_formula.getItem_mod(),
-                                    the_formula.getOperator(),
-                                    container);
+                            Formula crafted_item_formula = new Formula(active_formula.getRecipe(),
+                                    active_formula.getName(),
+                                    active_formula.getValue(),
+                                    active_formula.getDescription(),
+                                    active_formula.getGroup(),
+                                    active_formula.getItem_mod(),
+                                    active_formula.getOperator(),
+                                    container,
+                                    active_formula.isWeapon_formula(),
+                                    active_formula.isArmour_formula()
+                            );
 
                             return crafted_item_formula;
                         } else {
@@ -308,23 +350,23 @@ public class Alchemy {
                     /**
                      * -- POUCH items can hold SALVE,POWDER or SOLID formula's
                      */
-                    if (the_formula.getGroup() == Consistency.SALVE
-                            || the_formula.getGroup() == Consistency.POWDER
-                            || the_formula.getGroup() == Consistency.SOLID) {     // Pouches can hold these types
+                    if (active_formula.getGroup() == Consistency.SALVE
+                            || active_formula.getGroup() == Consistency.POWDER
+                            || active_formula.getGroup() == Consistency.SOLID) {     // Pouches can hold these types
 
                         /**
                          * -- If it's a stat altering formula, create with this constructor
                          */
-                        if (the_formula.isStat_formula()) {     // If formula is a stat altering formula
-                            Formula crafted_stat_formula = new Formula(the_formula.getRecipe(),
-                                    the_formula.getName(),
-                                    the_formula.getValue(),
-                                    the_formula.getDescription(),
-                                    the_formula.getGroup(),
-                                    the_formula.getStat_affected(),
-                                    the_formula.getAmount_affected(),
-                                    the_formula.getTurns_stat_affected(),
-                                    the_formula.getOperator(),
+                        if (active_formula.isStat_formula()) {     // If formula is a stat altering formula
+                            Formula crafted_stat_formula = new Formula(active_formula.getRecipe(),
+                                    active_formula.getName(),
+                                    active_formula.getValue(),
+                                    active_formula.getDescription(),
+                                    active_formula.getGroup(),
+                                    active_formula.getStat_affected(),
+                                    active_formula.getAmount_affected(),
+                                    active_formula.getTurns_stat_affected(),
+                                    active_formula.getOperator(),
                                     container);
 
                             return crafted_stat_formula;
@@ -332,16 +374,19 @@ public class Alchemy {
                         /**
                          * -- If it's an item altering formula, create with the other constructor
                          */
-                        } else if (the_formula.isItem_formula()) { // If formula is an Item formula
+                        } else if (active_formula.isItem_formula()) { // If formula is an Item formula
 
-                            Formula crafted_item_formula = new Formula(the_formula.getRecipe(),
-                                    the_formula.getName(),
-                                    the_formula.getValue(),
-                                    the_formula.getDescription(),
-                                    the_formula.getGroup(),
-                                    the_formula.getItem_mod(),
-                                    the_formula.getOperator(),
-                                    container);
+                            Formula crafted_item_formula = new Formula(active_formula.getRecipe(),
+                                    active_formula.getName(),
+                                    active_formula.getValue(),
+                                    active_formula.getDescription(),
+                                    active_formula.getGroup(),
+                                    active_formula.getItem_mod(),
+                                    active_formula.getOperator(),
+                                    container,
+                                    active_formula.isWeapon_formula(),
+                                    active_formula.isArmour_formula()
+                            );
 
                             return crafted_item_formula;
                         }
@@ -367,29 +412,31 @@ public class Alchemy {
      * @return true/false
      */
     public Boolean is_formula(String[] i_list) {
-        List<Ingredient> user_list = new ArrayList(Arrays.asList(i_list));
-        int size = user_list.size();
 
-        for (Formula f: unknown_recipes) {                 // Loop through all unknown recipes (it has every recipe)
+        if (i_list.length < 1) { return false; }   // If there are no ingredients currently in i_list
+        else {
+            List<Ingredient> user_list = new ArrayList(Arrays.asList(i_list));
+            int size = user_list.size();
 
-            ArrayList<String> compare_list = new ArrayList<>();
+            for (Formula f : unknown_recipes) {                 // Loop through all unknown recipes (it has every recipe)
 
-            for (Ingredient i: f.getRecipe()) {            // Add each recipe ingredient to their own lists
-                compare_list.add(i.getName());
-            }
+                ArrayList<String> compare_list = new ArrayList<>();
 
-            if (size == compare_list.size()) { // Make sure size is correct first, save processing time
+                for (Ingredient i : f.getRecipe()) { compare_list.add(i.getName()); }        // Add each recipe ingredient to their own lists
 
-                user_list = new ArrayList(Arrays.asList(i_list)); // Re-init user_list (was removing all elements before)
-                user_list.retainAll(compare_list);         // Find all common elements
+                if (size == compare_list.size()) { // Make sure size is correct first, save processing time
 
-                if (user_list.size() == size) {            // If every element is common, lists are match
-                    the_formula = f;                       // Set this var to the formula
-                    return true;
+                    user_list = new ArrayList(Arrays.asList(i_list)); // Re-init user_list (was removing all elements before)
+                    user_list.retainAll(compare_list);         // Find all common elements
+
+                    if (user_list.size() == size) {            // If every element is common, lists are match
+                        active_formula = f;                       // Set this var to the formula
+                        return true;
+                    }
                 }
             }
         }
-        the_formula = null;
+        active_formula = null;
         return false;
     }
 
@@ -422,14 +469,16 @@ public class Alchemy {
         if (ingredient5 != null) {
             ing5 = ingredient5.getName();
         }
-        if (the_formula != null) {        // If formula has been found, display the name
-            formula = IO.T_G+the_formula.getName()+IO.T_RS+"  <<  Enter ["+IO.T_Y+"Z"+IO.T_RS+"] to craft!";
+        if (active_formula != null) {        // If formula has been found, display the name
+            formula = IO.T_G+ active_formula.getName()+IO.T_RS+"  <<  Enter ["+IO.T_Y+"Z"+IO.T_RS+"] to craft!";
         } else {
             formula = IO.T_R+"? ? ?"+IO.T_RS;
         }
 
+        /*  UI ALCHEMY CRAFTING LAYOUT  */
 
         System.out.println("\n\n\n\n\n\n\n\n\n");
+
         System.out.println("+►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄+");
         System.out.println("|                       ALCHEMY CRAFTING                         |");
         System.out.println("+►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄+");
@@ -457,37 +506,6 @@ public class Alchemy {
      * Getting and setting Ingredients
      *
      */
-
-    public boolean ing1() {
-        if (ingredient1 == null) {
-            return true;
-        }
-        return false;
-    }
-    public boolean ing2() {
-        if (ingredient2 == null) {
-            return true;
-        }
-        return false;
-    }
-    public boolean ing3() {
-        if (ingredient3 == null) {
-            return true;
-        }
-        return false;
-    }
-    public boolean ing4() {
-        if (ingredient4 == null) {
-            return true;
-        }
-        return false;
-    }public boolean ing5() {
-        if (ingredient5 == null) {
-            return true;
-        }
-        return false;
-    }
-
 
     public Ingredient getIngredient1() {
         return ingredient1;
@@ -539,6 +557,6 @@ public class Alchemy {
         this.ingredient3=null;
         this.ingredient4=null;
         this.ingredient5=null;
-        the_formula = null;
+        active_formula = null;
     }
 }

@@ -103,22 +103,37 @@ public class Item implements java.io.Serializable{
 
             // If liquid soaked was not oil and Item had type 'FUEl', remove FUEL now
             if (Arrays.asList(itemType).contains(ItemType.FUEL) && !liquid.getName().toLowerCase().equals("oil")){
-                Arrays.asList(itemType).remove(ItemType.FUEL);
+                ItemType[] updatedArray = new ItemType[itemType.length - 1];
+                for (int i=0, j=0; i < itemType.length; i++) {
+                    if (itemType[i] == ItemType.FUEL) {
+                        continue;
+                    }
+                    updatedArray[j++] = itemType[i];
+                }
+                itemType = updatedArray;
+
             }
 
-            this.weight=weight*1.3;         // Increase weight of item
+            this.weight=weight*1.3;         // Increase weight of item (Hard coded value of +30% weight)
             // Return weight of item + weight of liquid
             return true;
         }
         return false;
     }
 
-    public void dry(Item item) {
-        if (this.soaked == true) {
-            this.soaked = false;
-        }
-    }
+    /**
+     * Remove 'soaked' and 'absorbed_liqud' from Item
+     * Will need to add functionality for removing oil's - cannot 'dry' an oil from a surface, must use water etc...
+     * @param item
+     */
+    public void dry(Item item) { if (this.soaked) { this.soaked=false;this.absorbed_liquid=null; } }
 
+    /**
+     * Add a writing to an Item, which can be read by the player
+     * If player has a writing tool, they may write on (most) Items
+     * @param note
+     * @return false - if Item cannot be written on
+     */
     public boolean write_on(String note) {
         if (Arrays.asList(itemType).contains(ItemType.WRITABLE)) {
             add_writing(note);
@@ -139,16 +154,26 @@ public class Item implements java.io.Serializable{
         return false;
     }
 
-    public void add_writing(String note) { this.writings += note;}
+    /**
+     * Write a string onto an Item, with a line break to separate accounts
+     * @param note
+     */
+    public void add_writing(String note) { this.writings += note + '\n';}
 
     public String get_writings() { return writings; }
 
-    // Returns weapon weight in the format of String (to include 'kg')
+    /**
+     * Returns weapon weight in the format of String (to include 'kg')
+     * @return String
+     */
     public String getWeight() { return String.format("%.2f", weight) + " kg"; }
 
+    /**
+     * Returns the weight as the numeric value
+     * @return double
+     */
     public double get_weight_value() { return weight; }
 
-    public String returnValue() { return value + " g"; }
 
     /**
      * Gets the relevant name dependent on the state of the Item
@@ -156,9 +181,9 @@ public class Item implements java.io.Serializable{
      */
     public String getName() {
         if (this instanceof Ingredient) {       // If player does not know the ingredient
-            if (((Ingredient) this).known == false) {
-                return "? ? ?";
-            }
+//            if (((Ingredient) this).known == false) {         <- Put this back in
+//                return "? ? ?";
+//            }
         } else {
             if (soaked == true) {
                 return name_soaked;
@@ -172,10 +197,14 @@ public class Item implements java.io.Serializable{
     }
 
     public String getDescription() {
-        if (this instanceof Ingredient) {       // If player does not know Ingredient, give vague description
-            if (((Ingredient) this).known==false) {
-                return ((Ingredient) this).vague_desc;
-            }
+        String desc = this.description;
+//        if (this instanceof Ingredient) {       // If player does not know Ingredient, give vague description
+//            if (((Ingredient) this).known==false) {
+//                return ((Ingredient) this).vague_desc;            <- Put this back in also
+//            }
+//        }
+        if (this.soaked) {
+            desc += '\n' + "Soaked with: " + absorbed_liquid.getName();
         }
         return description;
     }
@@ -185,6 +214,8 @@ public class Item implements java.io.Serializable{
     public int getValue() { return value; }
 
     public int getQuantity() { return quantity; }
+
+    public boolean isAlight() { return alight; }
 
     public void set_alight() { this.alight=true;}
 

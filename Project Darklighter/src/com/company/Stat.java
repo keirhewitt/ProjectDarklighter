@@ -78,11 +78,11 @@ public class Stat implements java.io.Serializable {
      */
     public void temporary_stat_decrease(int amount) {
         decreaseStatLevel(amount);
-        apply_temp_stat_increase();
+        apply_temp_stat_decrease();
     }
 
     public void apply_temp_stat_decrease() { this.temporary_decrease = true; }
-    public void remove_temp_stat_decrease() { this.temporary_decrease = true; }
+    public void remove_temp_stat_decrease() { this.temporary_decrease = false; }
     public boolean get_temp_stat_decrease() { return this.temporary_decrease;}
 
     public void apply_temp_stat_increase() { this.temporary_increase = true; }

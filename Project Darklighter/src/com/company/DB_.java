@@ -34,7 +34,7 @@ public class DB_  implements java.io.Serializable {
             "rat's tails are widely used in various potions.", 0.019, 8, IngredientType.CREATURE_PART);
     public Ingredient troll_skull = new Ingredient("Troll Skull","The remains of a long passed Troll, whomever ran " +
             "into this beast must not have made it out without a scratch.",2.2,25, IngredientType.CREATURE_PART);
-    public Ingredient wold_pelt = new Ingredient("Wolf Pelt","The pelt of a wolf, skinned by a hunter.",1.67,
+    public Ingredient wolf_pelt = new Ingredient("Wolf Pelt","The pelt of a wolf, skinned by a hunter.",1.67,
             24, IngredientType.CREATURE_PART);
     public Ingredient horse_hide = new Ingredient("Horse Hide","From a horse that has perhaps served it's purpose",
             3.20, 30, IngredientType.CREATURE_PART);
@@ -148,9 +148,9 @@ public class DB_  implements java.io.Serializable {
             "'The Red Town Executor'","'Meathook'","'Lockjaw'","'Hammer-Fist'","'The 4th Assassin'",
             "'Brutal'","'Lucifer'","'Rascal'","'Hook'","'Scar'","'Cull'","'Vendetta'"};
     // 'to' , 'of' , 'from' etc..
-    private String[] middle_connector = {"of","from","the Killer of","the Butcher of","the Bitch of",
-            "the Vampire of",", Demon of",", Pillager of", ", Knight of",", Paladin of",", the Horror of",
-            ", Destroyer of"};
+    private String[] middle_connector = {", of",", the Killer of",", the Butcher of",", the Bitch of",
+            ", the Vampire of",", Demon of",", Pillager of", ", Knight of",", Paladin of",", the Horror of",
+            ", Destroyer of", ", Ambassador to", ", Heir to", ", Monster of"};
 
     // 'The Killer' , 'The Maniacal' ,
     private String[] lastname_title = {"the Butcher","the Pious","the Deranged","the Small",
@@ -187,7 +187,7 @@ public class DB_  implements java.io.Serializable {
                 break;
             case 2:
                 name = d1.random_enemy_name(prefix_name)
-                        + " " + d1.random_enemy_name(middle_connector)
+                        + d1.random_enemy_name(middle_connector)
                         + " " + d1.random_enemy_name(lastname_place);
                 break;
             case 3:
@@ -211,7 +211,7 @@ public class DB_  implements java.io.Serializable {
                 break;
             case 8:
                 name = d1.random_enemy_name(lastname)
-                        + " " + d1.random_enemy_name(middle_connector)
+                        + d1.random_enemy_name(middle_connector)
                         + " " + d1.random_enemy_name(lastname_place);
                 break;
             default:
@@ -229,6 +229,7 @@ public class DB_  implements java.io.Serializable {
      * ------------> RANDOM LOOT ITEMS <------------------- *
                                                         * * *
                                                             */
+
 
     public Altar return_random_altar() {
 

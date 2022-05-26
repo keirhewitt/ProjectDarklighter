@@ -10,15 +10,19 @@ import java.util.Scanner;
  */
 public class Darklighter  implements java.io.Serializable{
 
-    public static final Scanner INPUT = new Scanner(System.in);
-    public static Player player = null;
-    public static String selection = "";
-    public static DB_ db_ = new DB_();
     public static int enemies_killed = 0;
     public static int rooms_encountered = 0;
-    public static Encounter encounter = new Encounter();
-    public static boolean player_alive = true;
     public static int room_number = 1;
+
+    public static final Scanner INPUT = new Scanner(System.in);
+    public static Encounter encounter = new Encounter();
+    public static DB_ db_ = new DB_();
+
+    public static Player player = null;
+    public static String selection = "";
+
+    public static boolean player_alive = true;
+
     public static Dungeon dungeon = null;
 
     /**
@@ -75,6 +79,38 @@ public class Darklighter  implements java.io.Serializable{
                 player = new Player(selection, "Human");
                 dungeon = new Dungeon(player);
 
+                player.add_to_inventory(db_.anise);
+                player.add_to_inventory(db_.fox_claws);
+                player.add_to_inventory(db_.dram);
+                player.add_to_inventory(db_.holly);
+                player.add_to_inventory(db_.viruscea);
+                player.add_to_inventory(db_.toadstools);
+                player.add_to_inventory(db_.bear_fat);
+                player.add_to_inventory(db_.tess_essence);
+                player.add_to_inventory(db_.graymold);
+                player.add_to_inventory(db_.bunchweed);
+                player.add_to_inventory(db_.eyk_de_velle_blossom);
+                player.add_to_inventory(db_.cadmia);
+                player.add_to_inventory(db_.wolf_pelt);
+                player.add_to_inventory(db_.asptongue_mold);
+                player.add_to_inventory(db_.mandrake);
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
+                player.add_to_inventory(db_.generate_random_normal_item());
                 /* dungeon.test_rooms(); */
 
                 Room first_room = dungeon.get_room(room_number);
@@ -92,20 +128,11 @@ public class Darklighter  implements java.io.Serializable{
     public static void loadGame() throws IOException, InterruptedException {
         player = player_load();
         if (player != null) {
-            System.out.println("Game state loaded.");
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            Thread.sleep(2500);
-            System.out.println("Welcome, " +IO.T_BL + player.getName()+IO.T_RS);
-            Thread.sleep(3000);
-            System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" +
-                    "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+            IO.load_game_intro();
             game_loop(false);
-        } else {
-            System.out.println("Could not load player info. Exiting...");
-            System.exit(0);
         }
+        main_menu();
+
     }
 
     public static void game_loop(boolean new_game) throws InterruptedException, IOException {
@@ -126,8 +153,6 @@ public class Darklighter  implements java.io.Serializable{
         while (!player.hasDied()) {
 
             player.print_room_grid();
-
-            check_if_room_complete(player.getCurrent_room());
 
             String choice = IO.standard_turn();
 
@@ -201,12 +226,11 @@ public class Darklighter  implements java.io.Serializable{
             }
         }
 
-        if (player.hasDied()) {
-            IO.player_death();
-            System.out.println("Enemies slain - " + enemies_killed);
-            System.out.println("Rooms encountered - " + rooms_encountered);
-            IO.credits();
-        }
+        // On player death
+        IO.player_death();
+        System.out.println("Enemies slain - " + enemies_killed);
+        System.out.println("Rooms encountered - " + rooms_encountered);
+        IO.credits();
 
     }
 
@@ -220,17 +244,18 @@ public class Darklighter  implements java.io.Serializable{
      * ...sets room = complete when room has been completed so it doesn't get checked again
      * @param current_room
      */
-    public static void check_if_room_complete(Room current_room) {
+    public static boolean check_if_room_complete(Room current_room) {
 
         int room = dungeon.return_rooms_array().indexOf(player.getCurrent_room());
 
         if (!current_room.is_complete()) {
             if (current_room.check_tiles_for_completion()) {
                 current_room.set_room_to_complete();
-                System.out.println("You have extinguished all opportunity from this room!");
                 player.add_xp((room * 15) + 20);
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -253,7 +278,7 @@ public class Darklighter  implements java.io.Serializable{
      */
     public static void previous_room() {
         if (room_number > 1) {
-            room_number-=1;
+            room_number -= 1;
             Room prev_room = dungeon.get_room(room_number);
             prev_room.enter_room();
         } else {
@@ -288,7 +313,8 @@ public class Darklighter  implements java.io.Serializable{
 
         if (encounter_type == 1) {
 
-            int chance_encounter = db_.random_loot_chance(6);
+            //int chance_encounter = db_.random_loot_chance(6);
+            int chance_encounter = 1;
 
             switch (chance_encounter) {
                 case 1:                                                     // Fight
@@ -522,17 +548,17 @@ public class Darklighter  implements java.io.Serializable{
 
     // Deserializes player data to load into the game
     public static Player player_load() {
-        Player p = null;
+        Player player_data = null;
         System.out.println("Loading game state....");
 
         try {
             FileInputStream fin = new FileInputStream("player.ser");
             ObjectInputStream oin = new ObjectInputStream(fin);
-            p = (Player) oin.readObject();
+            player_data = (Player) oin.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("No saved games available!");
         }
-        return p;
+        return player_data;
     }
 
 }

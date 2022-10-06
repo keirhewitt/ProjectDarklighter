@@ -1,6 +1,6 @@
- # Alignment
+###**Alignment**
  
-> ### How will players get alignment? 
+> *How will players get alignment?*
 - [ ] Continual use of Scripture? 
 - [ ] Reading?
 - [ ] Experiences?
@@ -9,44 +9,42 @@
 - [ ] Will enemies have alignment?
 
 
-> ### How else will alignment affect players?
-
-
+> *How else will alignment affect players?*
 - [ ] Different death mechanics? 
 - [ ] Can player be nihilist/hyper-rationalist?
 - [ ] What would this mean for death/stat augmenting mechanics like Religious attributes?
 
 
 ---
-# Items 
+###**Items**
 
-~ What kind of items will characters/players have
+~ *What kind of items will characters/players have*
 - [ ] Potions/Alchemy? - This will mean stat altering (temporary)
 - [ ] Magic?
 - [x] Armour/Shields?
 		
 ---
-# Altars
+###**Altars**
 
 - [ ] Add ASCII Art images of monuments?
-- [ ] Extent of functionality for getting scripture?
+- [ ] Is this the only method for getting scripture?
 	
 ---	
-# Scripture
+###**Scripture**
 
-~ What are the ways it will affect the player?
+~ *What are the ways it will affect the player?*
 - [x] Stats
 - [x] Passive boosts (combat etc.)
 - [ ] XP?
 - [ ] Death? Some sort of mechanics around dying?
 - [ ] Accessibility to certain actions?
 - [ ] Reveal abilities?
-	
+- [ ] Interactions with NPCs/Items/Events?
 
 ---
-# Abilities
+###**Abilities**
 
-- [ ] ! Implement abilities !
+- [x] Implement abilities !
 - [ ] Based on Faith system?
 - [ ] Perform specific actions?
 - [ ] Combat?
@@ -54,31 +52,35 @@
 - [ ] Dialogue options?
 
 ---
-# Combat
+###**Combat**
 
-~ How many options?
-- [ ] Attack, Heal, Change Weapon, Flee
+~ *How many options?*
+- [x] Attack, Heal, Change Weapon, Flee
 - [ ] Injuries
 - [ ] Hitting certain body parts
 - [ ] Percentage to hit body part
 - [ ] Will player choose which part to hit?
 - [ ] Or will it be random and down to chance?
 - [ ] Create enemy health bar? [▓▓▓▓▓▓░░░] (ASCII 178 + 176)
+- [ ] Counter-attacking
+- [ ] Defend attacks?
 	
 ---
-# Enemy Generation
+###**Enemy Generation**
 
-~ What kind of things to make random?
+~ *What kind of things to make random?*
 - [x] All stats?
 - [ ] Armour/Weapons - tailor to level?
 - [ ] Loot
 - [ ] Race/Type - different attributes?
 
 ---
-# Characters
+###**Characters**
 
-~ Other characters
+~ *Other characters*
 - [ ] NPCs?
+- [ ] Merchants?
+- [ ] Event-oriented characters?
 
 
 

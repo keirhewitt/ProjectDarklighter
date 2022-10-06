@@ -23,8 +23,6 @@ public class Enemy extends Character implements InventoryManagement, java.io.Ser
         this.xp = xp;
         setInventory(10);
         super.setLevel(level);
-        populate_inventory();
-        populate_inventory();
     }
 
     public Enemy(String name, String type, Character player, int room) {
@@ -41,8 +39,6 @@ public class Enemy extends Character implements InventoryManagement, java.io.Ser
         super.setLevel(calculate_level());
         this.xp = calculate_xp_reward();
         setInventory(10);
-        populate_inventory();
-        populate_inventory();
     }
 
     public int getXpReward() { return xp; }
@@ -142,57 +138,6 @@ public class Enemy extends Character implements InventoryManagement, java.io.Ser
         return enemy_ability_choice;
     }
 
-    /**
-     * Rolls for the chance to spawn each item
-     * Item is added to each enemy's inventory
-     *
-     * Roll happens twice (is called twice - i.e. this method does not contain 2 rolls each)
-     */
-    public void populate_inventory() {
-        double gold_chance = d1.chance_roll();
-        double weapon_chance = d1.chance_roll();
-        double healing_chance = d1.chance_roll();
-        double valuable_item_chance = d1.chance_roll();
-        double armour_chance = d1.chance_roll();
-        double food_chance = d1.chance_roll();
-
-        if (valuable_item_chance < 0.06) {
-            Item loot_valuable_item = getInventory().loot_random_valuable_item();
-            if (loot_valuable_item != null) {
-                add_to_inventory(loot_valuable_item);
-            }
-        }
-        if (armour_chance < 0.12) {
-            Armour loot_armour = return_levelled_armour_item();
-            add_to_inventory(loot_armour);
-            if (loot_armour.headArmour()) {
-                equipHeadArmour(loot_armour);
-            } else {
-                equipChestArmour(loot_armour);
-            }
-        }
-        if (weapon_chance < 0.30) {
-            Weapon loot_weapon = return_levelled_weapon_item();
-            add_to_inventory(loot_weapon);
-            setEquipped_weapon(loot_weapon);
-
-        }
-        if (healing_chance < 0.75) {
-            Item loot_heal_item = getInventory().loot_random_healing_item();
-            if (loot_heal_item != null) {
-                add_to_inventory(loot_heal_item);
-            }
-        }
-        if (gold_chance < 0.85) {
-            Currency currency_loot = new Currency(d1.manualDiceRoll(40));
-            add_to_inventory(currency_loot);
-        }
-        if (food_chance < 0.90) {
-            // Add later
-        }
-
-
-    }
 
     /**
      * If an enemy has a healing item in their inventory, then heal for a random int.

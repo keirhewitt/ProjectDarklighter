@@ -47,10 +47,6 @@ public class Armour extends Item implements java.io.Serializable {
 
     public void setDefence_rating(int defence_rating) { this.defence_rating = defence_rating; }
 
-    //public void setArmour_type(ItemCategory type) {
-        //this.armour_type = type;
-    //}
-
     /**
      * Damage armour from a strike/any other methods
      * @param amount - integer amount that the armour is damaged

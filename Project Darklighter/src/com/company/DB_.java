@@ -6,11 +6,10 @@ import java.util.ArrayList;
  * This will contain all of the records of names of enemies/items etc.. which will be pulled from
  * at random when creating these objects
  */
-public class DB_  implements java.io.Serializable {
+public class DB_ implements java.io.Serializable {
 
-    private Dice d1 = new Dice();
     private Religion religion = new Religion();
-
+    private static Dice d1 = new Dice();
 
     /**
             =================================== INGREDIENTS =================================
@@ -260,7 +259,7 @@ public class DB_  implements java.io.Serializable {
 
     }
 
-    public Armour return_random_armour_item() {
+    public static Armour return_random_armour_item() {
 
         //ArrayList<Armour> armours = new ArrayList<>();
         Armour[] armours = new Armour[14];
@@ -300,7 +299,7 @@ public class DB_  implements java.io.Serializable {
     }
 
 
-    public Item return_random_healing_item() {
+    public static Item return_random_healing_item() {
 
         Item[] healing_items = new Item[5];
 
@@ -325,7 +324,7 @@ public class DB_  implements java.io.Serializable {
 
     }
 
-    public Weapon return_random_weapon() {
+    public static Weapon return_random_weapon() {
 
         Weapon[] weapons = new Weapon[16];
 
@@ -383,7 +382,7 @@ public class DB_  implements java.io.Serializable {
 
     }
 
-    public Item return_random_valuable_item() {
+    public static Item return_random_valuable_item() {
 
         Item[] valuable_items = new Item[11];
 
@@ -451,7 +450,7 @@ public class DB_  implements java.io.Serializable {
         return shield_items[(d1.manualDiceRoll(shield_items.length))-1];
     }
 
-    public Item generate_random_normal_item() {
+    public static Item generate_random_normal_item() {
 
         Item[] items_list = new Item[15];
 
@@ -532,6 +531,20 @@ public class DB_  implements java.io.Serializable {
         food_items[5]=(apple_pie);
 
         return food_items[(d1.manualDiceRoll(food_items.length))-1];
+    }
+
+    /**
+     * Return a Weapon item which is levelled to the Character
+     *
+     * @return Weapon
+     */
+    public Weapon return_levelled_weapon_item(Character character) {
+        Weapon weapon = null;
+        int max_damage_rating = (int) Math.floor(character.getLevel().getStat_level()/10+5);
+        do {
+            weapon = return_random_weapon();
+        } while (weapon.getMax_damage() > max_damage_rating);
+        return weapon;
     }
 
 

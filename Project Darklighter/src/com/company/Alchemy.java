@@ -10,8 +10,6 @@ public class Alchemy {
     private Dice d1 = new Dice();
     private ArrayList<Formula> known_recipes = new ArrayList<>();
     private ArrayList<Formula> unknown_recipes = new ArrayList<>();
-    public String leftAlignFormat = "| %-13s | %-47s |%n";
-    public String middleAlign = "| %-71s |";
 
     private Ingredient ingredient1 = null;
     private Ingredient ingredient2 = null;
@@ -34,6 +32,9 @@ public class Alchemy {
     public Ingredient[] mini_strength_plus = new Ingredient[3];
     public Ingredient[] mini_strength_minus = new Ingredient[3];
 
+    public String leftAlignFormat = "| %-13s | %-47s |%n";
+    public String middleAlign = "| %-71s |";
+
 
 
     /*
@@ -50,6 +51,7 @@ public class Alchemy {
             new Formula(mini_health_plus, "Mini Health Elixir", 45,
                     "The mixture revitalises the consumer a small amount", Consistency.LIQUID,
                     "health",25,0, "+",null);    // Increase health
+
     public Formula truer_strike_oil =
             new Formula(weapon_damage_oil_plus, "Truer Strike Oil", 50,
                     "Gives the applied weapon an edge against humanoids.", Consistency.LIQUID,
@@ -104,8 +106,6 @@ public class Alchemy {
             new Formula(mini_strength_plus, "Potion of Diminutive Size", 64,
                     "Decrease your foe's power.", Consistency.LIQUID,
                     "strength", 4,3,"-",null);   // Decreased strength
-
-
 
     public Alchemy() { init_formulas();}    // Constructor just initializes the formulas
 

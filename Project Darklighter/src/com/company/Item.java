@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.Arrays;
+import com.company.IO;
 
 public class Item implements java.io.Serializable{
 
@@ -231,7 +232,7 @@ public class Item implements java.io.Serializable{
         System.out.format("| Name                           | Value   | Weight    | Quantity |%n");
         System.out.format("+--------------------------------+---------+-----------+----------+%n");
         System.out.format(leftAlignFormat,
-                this.getName(),
+                this.name,
                 this.getValue(),
                 this.getWeight(),
                 this.getQuantity()
@@ -243,7 +244,7 @@ public class Item implements java.io.Serializable{
         System.out.format("| Name                  | Description                               | Healing Item | Healing Amount | Quantity |%n");
         System.out.format("+-----------------------+-------------------------------------------+--------------+----------------+----------+%n");
         System.out.format(leftAlignFormatHealing,
-                this.getName(),
+                this.name,
                 this.getDescription(),
                 this.healing_item,
                 this.getHealingAmount(),
@@ -258,7 +259,7 @@ public class Item implements java.io.Serializable{
             System.out.format("| Name                              | Attack Style  | Max Damage | Weight   |%n");
             System.out.format("+-----------------------------------+---------------+------------+----------+%n");
             System.out.format(leftAlignFormatWeapon,
-                    this.getName(),
+                    this.name,
                     ((Weapon) this).getAttack_style(),
                     ((Weapon) this).getMax_damage(),
                     this.getWeight()
@@ -281,7 +282,7 @@ public class Item implements java.io.Serializable{
             System.out.format("| Name                                | Armour Type   | Durability | Weight     |%n");
             System.out.format("+-------------------------------------+---------------+------------+------------+%n");
             System.out.format(leftAlignFormatArmour,
-                    this.getName(),
+                    this.name,
                     type,
                     ((Armour) this).getArmour_durability() + "/" + ((Armour) this).getMax_armour_durability(),
                     this.getWeight()

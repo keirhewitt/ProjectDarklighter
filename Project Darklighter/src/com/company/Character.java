@@ -1,7 +1,5 @@
 package com.company;
 
-import javax.swing.text.SimpleAttributeSet;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,13 +18,13 @@ import java.util.Map;
  *  - Instance of Dice to roll for actions
  */
 public class Character implements Combat, java.io.Serializable  {
+
     private Dice d1 = new Dice();
     private DB_ db_ = new DB_();
 
     // Character's position in a room
     private int position_x;
     private int position_y;
-
 
     /**
            ****** RESISTANCES --- YET TO IMPLEMENT *******
@@ -128,10 +126,8 @@ public class Character implements Combat, java.io.Serializable  {
             Abilities
                             */
     Ability punch = new Ability("Punch", strength, 1, true, false, AttackType.UNARMED, null);
-
     Ability slash = new Ability("Slash", attack, 1, true, false, AttackType.SLASH, null);
     // Slash - [Damage]
-
     Ability stab = new Ability("Stab", attack, 1, true, false, AttackType.STAB, null);
     // Stab - [Damage]
 
@@ -261,8 +257,6 @@ public class Character implements Combat, java.io.Serializable  {
 
     public void setIntelligence(int intelligence) { this.intelligence.setStat_level(intelligence); }
 
-    public Weapon getEquipped_weapon() { return equipped_weapon; }
-
     public void unequip_weapon() {
         this.equipped_weapon = fists;
     }
@@ -300,27 +294,18 @@ public class Character implements Combat, java.io.Serializable  {
 
     public void setLevel(int level) { this.level.setStat_level(level); }
 
+    public Weapon getEquipped_weapon() { return equipped_weapon; }
+
     public Item getOff_hand() { return off_hand; }
 
     public int calculate_level() {
         int total = 0;
-
         for (Stat s: stats) {
             if (!s.getName().toLowerCase().equals("health")) {
                 total += s.getStat_level();
             }
         }
-
         return total / 10;
-
-    }
-    public Stat get_stat(String statname) {
-        for (Stat s: stats) {
-            if (s.getName().toLowerCase().equals(statname.toLowerCase())) {
-                return s;
-            }
-        }
-        return null;
     }
 
     public void set_off_hand(Item item) { this.off_hand = item; }
@@ -365,6 +350,10 @@ public class Character implements Combat, java.io.Serializable  {
         return head;
     }
 
+    /**
+     * Add health, to a maximum value of maxHealth
+     * @param amount
+     */
     public void gainHealth(int amount) {
         this.health.increaseStatLevel(amount);
         if (this.health.getStat_level() > this.getMaxHealth().getStat_level()) {
@@ -646,7 +635,7 @@ public class Character implements Combat, java.io.Serializable  {
      * @return boolean
      */
     public boolean hasDied() {
-        return died;
+        return health.getStat_level() == 0;
     }
 
     /**
@@ -753,7 +742,7 @@ public class Character implements Combat, java.io.Serializable  {
     public void show_player_abilities_in_battle() {
         compile_active_abilities_and_return();
         for (Map.Entry<Integer, Ability> set : active_abilities.entrySet()) {
-            System.out.println(IO.T_P+"  ["+set.getKey() + "] " +IO.T_RS+ set.getValue().getName());
+            System.out.println("> " + IO.TB_P+"["+set.getKey()+"]"+IO.T_RS+" " + set.getValue().getName());
         }
     }
 
@@ -809,19 +798,7 @@ public class Character implements Combat, java.io.Serializable  {
         return armour;
     }
 
-    /**
-     * Return a Weapon item which is levelled to the Character
-     *
-     * @return Weapon
-     */
-    public Weapon return_levelled_weapon_item() {
-        Weapon weapon = null;
-        int max_damage_rating = (int) Math.floor(this.getLevel().getStat_level()/10+5);
-        do {
-            weapon = db_.return_random_weapon();
-        } while (weapon.getMax_damage() > max_damage_rating);
-        return weapon;
-    }
+
 
     /**
      * Called during attack function
@@ -1156,6 +1133,8 @@ public class Character implements Combat, java.io.Serializable  {
                         " with " + attacker.getEquipped_weapon().getName() +
                         "!");
                 defender.loseHealth(damage);
+
+                return;     // Exit function here.
 
             } else {
 

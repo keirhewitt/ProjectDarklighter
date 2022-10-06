@@ -1,6 +1,9 @@
 package com.company;
 
 import java.util.*;
+import com.company.Armour;
+import com.company.Weapon;
+import com.company.Item;
 
 /**
  * Inventory contains an arraylist which holds all of the items
@@ -10,7 +13,6 @@ import java.util.*;
 public class Inventory implements java.io.Serializable {
 
     private Dice d1 = new Dice();
-    private DB_ db_ = new DB_();
     private ArrayList<Item> inventory_items = new ArrayList<Item>();
     private HashMap<Integer, Item> temp_map = new HashMap<Integer, Item>();
     private HashMap<Integer, Item> heal_map = new HashMap<Integer, Item>();
@@ -25,11 +27,23 @@ public class Inventory implements java.io.Serializable {
     public String leftAlignHealing = "| %-4d | %-25s | %-7d | %-5d | %-9d|%n";
     public String leftAlignIngredient = "| %-4d | %-29s | %-5d | %-9d|%n";
 
-    private ArrayList<Item> enemy_loot_chance = new ArrayList<Item>();
-
     public Inventory(int slots) {
         this.slots = slots;
         this.empty_slots = slots;
+    }
+
+    /**
+     * Returns true if the player has any healing items in their inventory
+     * False if not
+     * @return - true or false
+     */
+    public boolean has_healing_items() {
+        for (Item i: inventory_items) {
+            if (i.isHealing_item()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -565,26 +579,26 @@ public class Inventory implements java.io.Serializable {
 
     // Returns a random Item ( healing item )
     public Item loot_random_healing_item() {
-        return db_.return_random_healing_item();
+        return DB_.return_random_healing_item();
     }
 
     // Returns a random Weapon
     public Weapon loot_random_weapon() {
-        return db_.return_random_weapon();
+        return DB_.return_random_weapon();
     }
 
     // Returns a random valuable Item
     // Returns a random valuable Item
     public Item loot_random_valuable_item() {
-        return db_.return_random_valuable_item();
+        return DB_.return_random_valuable_item();
     }
 
     public Item loot_random_normal_item() {
-        return db_.generate_random_normal_item();
+        return DB_.generate_random_normal_item();
     }
 
     // Returns a random armour item
-    public Armour loot_random_armour_item() { return db_.return_random_armour_item(); }
+    public Armour loot_random_armour_item() { return DB_.return_random_armour_item(); }
 
     // Returns the ArrayList object
     public ArrayList<Item> return_inventory() {

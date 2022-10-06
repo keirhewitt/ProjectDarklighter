@@ -9,10 +9,6 @@ import java.util.ArrayList;
  *
  * Dungeon example (initialised at beginning of program):
  *  - Maybe 3 standard rooms and then 1 alt room i.e. 3-1-3-1
- *  - Alt rooms could reveal more of the story?
- *     '+' = Standard Room
- *     'o' = alt room ?
- *
  *
  *
  */
@@ -43,7 +39,7 @@ public class Dungeon implements Serializable {
         }
     }
 
-    /* TEST FUNCTION
+    /* TEST FUNCTION */
     public void test_rooms() {
         int index = 1;
         for (Room r: dungeon) {
@@ -52,7 +48,14 @@ public class Dungeon implements Serializable {
             index++;
         }
     }
-     */
+
+    /* TEST FUNCTION */
+    public void TEST_doors() {
+        for (Room r: dungeon) {
+            r.TEST_GET_ROOM_DOORS();    // Make sure correct doors are assigned
+        }
+        System.out.println("\n\n\n\n\n");
+    }
 
     public void dungeon_creation(int size) {
         for ( int i = 1; i <= size; i++ ) {

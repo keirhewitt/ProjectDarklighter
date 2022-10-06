@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.ArrayList;
+
 /**
  * Rooms will be the stages for each encounter
  * Player will move between randomly generated rooms, populated with enemies, loot etc.
@@ -25,6 +27,7 @@ public class Room implements java.io.Serializable  {
     private String type = "Room";
     int[][] previous_door;
     int[][] next_door;
+    ArrayList<int[][]> discovered_tiles = new ArrayList<>();
     Room prev_room = null;
     Room next_room = null;
     Room next_next_room = null;
@@ -88,6 +91,16 @@ public class Room implements java.io.Serializable  {
             return false;                   // Return false (no xp gain)
         }
         return true;
+    }
+
+    /**
+     * Return to previously visited room (from room ahead)
+     * @return
+     */
+    public boolean return_to_room() {
+        player.set_current_position(getNext_door()[0][0], getNext_door()[0][1]);
+        player.set_current_room(this);
+        return false;   // No XP gain
     }
 
     /**
@@ -180,7 +193,8 @@ public class Room implements java.io.Serializable  {
                 // Print position of player
                 if (player.getCurrent_pos_x() == i && player.getCurrent_pos_y() == j) {
                     System.out.print("[ "+IO.T_Y +"X"+IO.T_RS +" ] ");
-                } else if (player.getCurrent_pos_x() == i && player.getCurrent_pos_y()+1 == j ||
+                } else if (
+                        player.getCurrent_pos_x() == i && player.getCurrent_pos_y()+1 == j ||
                         player.getCurrent_pos_x() == i && player.getCurrent_pos_y()-1 == j ||
                         player.getCurrent_pos_y() == j && player.getCurrent_pos_x()-1 == i ||
                         player.getCurrent_pos_y() == j && player.getCurrent_pos_x()+1 == i ||
@@ -188,7 +202,8 @@ public class Room implements java.io.Serializable  {
                         player.getCurrent_pos_x()-1 == i && player.getCurrent_pos_y()-1 == j ||
                         player.getCurrent_pos_y()+1 == j && player.getCurrent_pos_x()-1 == i ||
                         player.getCurrent_pos_y()-1 == j && player.getCurrent_pos_x()+1 == i){
-                    System.out.print("[ " + tiles[i][j] + " ] ");
+                    System.out.print("[ " + tiles[i][j] + " ] "
+                    );
                 } else {
                     System.out.print("[ "+IO.T_B +"#"+IO.T_RS + " ] ");
                 }
@@ -203,7 +218,13 @@ public class Room implements java.io.Serializable  {
         System.out.println("| --------------------------------+----------------------------- |");
         System.out.println("|   X → PLAYER  |  0 → FREE TILE  |  1 → ENCOUNTER  |  2 → DOOR  |");
         System.out.println("+►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►+◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►◄►+");
-        System.out.println("Room " + dungeon.return_rooms_array().indexOf(this));
+        System.out.println("Room " + (dungeon.return_rooms_array().indexOf(this)+1));
+        if (getNext_door() != null) {
+            System.out.println("Next door: " + getNext_door()[0][0] + ", " + getNext_door()[0][1]);
+        }
+        if (getPrevious_door() != null) {
+            System.out.println("Previous door: " + getPrevious_door()[0][0] + ", " + getPrevious_door()[0][1]);
+        }
     }
 
 
@@ -245,50 +266,6 @@ public class Room implements java.io.Serializable  {
     public int[][] getNext_door() { return next_door; }
 
     /**
-     * TEST FUNCTION
-     * @return String - TOP, BOTTOM, LEFT, RIGHT
-     */
-    public String get_Previous_Door_TEST() {
-        try {
-            if (getPrevious_door()[0][0] == 0 && getPrevious_door()[0][1] == 3) {
-                return "TOP";
-            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 0) {
-                return "LEFT";
-            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 6) {
-                return "RIGHT";
-            } else if (getPrevious_door()[0][0] == 6 && getPrevious_door()[0][1] == 3) {
-                return "BOTTOM";
-            }
-        } catch (NullPointerException ne) {
-            return IO.T_BL+"None"+IO.T_RS;
-        }
-        return "";
-    }
-
-    /**
-     * TEST FUNCTION
-     * @return String - TOP, BOTTOM, LEFT, RIGHT
-     */
-    public String get_Next_Door_TEST() {
-        try {
-            if (getNext_door()[0][0] == 0 && getNext_door()[0][1] == 3) {
-                return "TOP";
-            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 0) {
-                return "LEFT";
-            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 6) {
-                return "RIGHT";
-            } else if (getNext_door()[0][0] == 6 && getNext_door()[0][1] == 3) {
-                return "BOTTOM";
-            }
-        } catch (NullPointerException ne) {
-            return IO.T_BL+"None"+IO.T_RS;
-        }
-        return "";
-    }
-
-
-
-    /**
      * Return the number stored at the given tile
      * @param x - x co-ord
      * @param y - y co-ord
@@ -296,6 +273,15 @@ public class Room implements java.io.Serializable  {
      */
     public int check_tile(int x, int y) {
         return (int)tiles[x][y];
+    }
+
+    /**
+     * Once player has moved to tile, set it to discovered so that it will be shown on the grid
+     * @param x - x co-ord
+     * @param y - y co-ord
+     */
+    public void discoverTile(int x, int y) {
+        discovered_tiles.add(new int[][] {{x, y}});
     }
 
     /**
@@ -329,39 +315,29 @@ public class Room implements java.io.Serializable  {
         }
     }
 
+
     /**
      * Sets a random co-orindate from the int multidimensional array to a '2' (door)
      *
-     * If the co-ordinate is already a door, pick another random door point
+     * If the co-ordinate is already a door, pick another random door point.
      *
-     * -- CONTAINS NO BOTTOM DOOR, for if the next, next room is a Hallway or River room
+     * If bottom = false, set random door without chance to put door at bottom; (6, 3) on grid
      */
-    public void set_random_door_no_bottom() {
-        int[][] doors = { {0, 3}, {3, 0}, {3, 6} };
-        while(true) {
-            int[] option = doors[d1.manualDiceRoll(3)-1];
+    public void set_random_door(boolean bottom) {
+        int[] option = {};
+        int[][] doors = {};
+        if (bottom) {
+            doors = new int[][]{{0, 3}, {3, 0}, {3, 6}, {6, 3}};
+        } else {
+            doors = new int[][]{{0, 3}, {3, 0}, {3, 6}};
+        }
 
-            if (tiles[option[0]][option[1]] != 2) {
-                tiles[option[0]][option[1]] = 2;
-                next_door = new int[][] {{option[0],option[1]}};
-                break;
+        while(true) {
+            if (doors.length == 4) {
+                option = doors[d1.manualDiceRoll(4)-1];
+            } else {
+                option = doors[d1.manualDiceRoll(3)-1];
             }
-        }
-        if (next_door == null) {
-            System.out.println("No door instance found for " + this.getType());
-        }
-    }
-
-    /**
-     * Sets a random co-orindate from the int multidimensional array to a '2' (door)
-     *
-     * If the co-ordinate is already a door, pick another random door point
-     */
-    public void set_random_door() {
-        int[][] doors = { {0, 3}, {3, 0}, {3, 6}, {6,3} };
-
-        while(true) {
-            int[] option = doors[d1.manualDiceRoll(4)-1];
 
             if (tiles[option[0]][option[1]] != 2) {
                 tiles[option[0]][option[1]] = 2;
@@ -406,13 +382,14 @@ public class Room implements java.io.Serializable  {
         if (this_room == 0) {
             if (next_room instanceof RoomHallway || next_room instanceof RoomRiver) {
                 tiles[0][3] = 2;
+                next_door = new int[][] {{0,3}};
             } else {
-                set_random_door_no_bottom();
+                set_random_door(false);
             }
 
-            /**
-             * If this room is NOT the final room
-              */
+        /**
+         * If this room is NOT the final room
+         */
         } else if (this_room != dungeon.return_rooms_array().size()-1) {
 
             /**
@@ -452,27 +429,27 @@ public class Room implements java.io.Serializable  {
              *
              * > The next door cannot be bottom
              *  -- The reason is it would be strange to go into BOTTOM of this one, come out
-             *  the next room at the TOP and then go back into the TOP into a River/Hallway Room
+             *  the next room at the TOP and then go back into the TOP into the following River/Hallway Room
              */
             else if (this instanceof Room && (next_next_room instanceof RoomHallway || next_next_room instanceof RoomRiver)) {
                 if (prev_room instanceof Room) {
                     set_door_based_on_previous(prev_room.next_door);
-                    set_random_door_no_bottom();
+                    set_random_door(false);
                 } else {
                     tiles[6][3] = 2;
                     previous_door = new int[][] {{6,3}};
-                    set_random_door_no_bottom();
+                    set_random_door(false);
                 }
 
             }
             else {
                 if (prev_room instanceof Room) {
                     set_door_based_on_previous(prev_room.next_door);
-                    set_random_door();
+                    set_random_door(true);
                 } else {
                     tiles[6][3] = 2;
                     previous_door = new int[][] {{6,3}};
-                    set_random_door();
+                    set_random_door(true);
                 }
             }
 
@@ -487,12 +464,108 @@ public class Room implements java.io.Serializable  {
                 previous_door = new int[][] {{6,3}};
             }
         }
-
-
     }
+
+
+
+
+
+    /**
+     *  =============================================================================
+     *  ============ TEST FUNCTIONS
+     *
+     */
+
+    /**
+     * On entering each room, prints the location of the next and previous doors.
+     */
+    public void TEST_GET_ROOM_DOORS() {
+        System.out.println();
+
+        if (dungeon.return_rooms_array().indexOf(this) > 0) {
+            if (getPrevious_door()[0][0] == 0 && getPrevious_door()[0][1] == 3) {
+                System.out.println("Previous: TOP");
+            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 0) {
+                System.out.println("Previous: LEFT");
+            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 6) {
+                System.out.println("Previous: RIGHT");
+            } else if (getPrevious_door()[0][0] == 6 && getPrevious_door()[0][1] == 3) {
+                System.out.println("Previous: BOTTOM");
+            } else {
+                System.out.println();
+            }
+        }
+
+        if (dungeon.return_rooms_array().indexOf(this) < dungeon.get_size() - 1) {
+            if (getNext_door()[0][0] == 0 && getNext_door()[0][1] == 3) {
+                System.out.println("Next: TOP");
+            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 0) {
+                System.out.println("Next: LEFT");
+            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 6) {
+                System.out.println("Next: RIGHT");
+            } else if (getNext_door()[0][0] == 6 && getNext_door()[0][1] == 3) {
+                System.out.println("Next: BOTTOM");
+            } else {
+                System.out.println();
+            }
+            System.out.println();
+        }
+    }
+
+    /**
+     * TEST FUNCTION
+     * @return String - TOP, BOTTOM, LEFT, RIGHT
+     */
+    public String get_Previous_Door_TEST() {
+        try {
+            if (getPrevious_door()[0][0] == 0 && getPrevious_door()[0][1] == 3) {
+                return "TOP";
+            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 0) {
+                return "LEFT";
+            } else if (getPrevious_door()[0][0] == 3 && getPrevious_door()[0][1] == 6) {
+                return "RIGHT";
+            } else if (getPrevious_door()[0][0] == 6 && getPrevious_door()[0][1] == 3) {
+                return "BOTTOM";
+            }
+        } catch (NullPointerException ne) {
+            return IO.T_BL+"None"+IO.T_RS;
+        }
+        return "";
+    }
+
+    /**
+     * TEST FUNCTION
+     * @return String - TOP, BOTTOM, LEFT, RIGHT
+     */
+    public String get_Next_Door_TEST() {
+        try {
+            if (getNext_door()[0][0] == 0 && getNext_door()[0][1] == 3) {
+                return "TOP";
+            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 0) {
+                return "LEFT";
+            } else if (getNext_door()[0][0] == 3 && getNext_door()[0][1] == 6) {
+                return "RIGHT";
+            } else if (getNext_door()[0][0] == 6 && getNext_door()[0][1] == 3) {
+                return "BOTTOM";
+            }
+        } catch (NullPointerException ne) {
+            return IO.T_BL+"None"+IO.T_RS;
+        }
+        return "";
+    }
+
+    /**
+     *  =============================================================================
+     *  ============ END OF TEST FUNCTIONS
+     *
+     */
+
+
+
+
 
     public String toString() {
         return "A dark room lies before you.. you can't make out walls that are not immediately adjacent,\nAnd there" +
-                " isn't enough visibility to make out a roof - perhaps verticality\nIs of no consequence to you in here.";
+                " isn't enough visibility to make out a roof - perhaps height\nIs of no consequence to you in here.";
     }
 }

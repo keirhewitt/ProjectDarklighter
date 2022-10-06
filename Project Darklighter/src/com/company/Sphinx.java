@@ -16,7 +16,7 @@ public class Sphinx extends Enemy implements InventoryManagement, java.io.Serial
         super.setAttack(d1.manualDiceRoll(player.getAttack().getStat_level()));
         super.setDefence(d1.manualDiceRoll(player.getAttack().getStat_level()+4));
         super.setStrength(d1.manualDiceRoll(player.getAttack().getStat_level()+1));
-        super.setDexterity(d1.manualDiceRoll(player.getDexterity().getStat_level()-3));
+        super.setDexterity(d1.manualDiceRoll((int) ((int)player.getDexterity().getStat_level()* 0.2)));
         super.setInitiative(d1.manualDiceRoll(player.getInitiative().getStat_level()+2));
         super.setIntelligence(d1.manualDiceRollBetween(player.getLevel().getStat_level()+2, player.getLevel().getStat_level()+6));
         super.setMaxHealth(d1.manualDiceRollBetween(player.getLevel().getStat_level()+2, player.getLevel().getStat_level()+6));
@@ -31,20 +31,34 @@ public class Sphinx extends Enemy implements InventoryManagement, java.io.Serial
         riddles.put("I never was, am always to be." +
                 " No one ever saw me, nor ever will," +
                 " and yet, I am the confidence of all who " +
-                "live and breathe. What am I?","Tomorrow");
+                "live and breathe. What am I?",
+                // Question
+
+                "Tomorrow");
+                // Answer
         riddles.put("There are two sisters: " +
                 "one gives birth to the other and she, " +
                 "in turn, gives birth to the first." +
-                " Who are the two sisters?","Day and Night");
+                " Who are the two sisters?",
+                // Question
+
+                "Day and Night");
+                // Answer
         riddles.put("What has rivers with no water, forests, " +
                 "but no trees, and cities with no buildings?"
+                // Question
+
                ,"Map");
+                // Answer
         riddles.put("This thing all things devours, birds, beasts, trees, flowers.\n" +
                 "Gnaws iron, bites steel,\n" +
                 "Grinds hard stone to meal.\n" +
                 "Slays kings, ruins towns,\n" +
                 "and beats high mountains down.\n"
+                // Question
+
                 ,"Time");
+                // Answer
     }
 
     /**
@@ -55,7 +69,11 @@ public class Sphinx extends Enemy implements InventoryManagement, java.io.Serial
         String[] questions = riddles.keySet().toArray(new String[0]);
         // String[] answers = riddles.values().toArray(new String[0]);
 
-        return questions[d1.manualDiceRoll(questions.length)];
+        return questions[d1.manualDiceRoll(questions.length)-1];
+    }
+
+    public boolean answerRiddle(String playerGuess) {
+        return true;
     }
 
     /**
@@ -75,6 +93,7 @@ public class Sphinx extends Enemy implements InventoryManagement, java.io.Serial
         if (answer.toLowerCase().trim().equals(guess.toLowerCase().trim())) {
             return true;
         }
+
         if(answer.length() == guess.length() + 1 || answer.length() == guess.length() - 1 || answer.length() == guess.length()) { // if answer is same length +- 1 as guess
             for(int i = 0; i < answer.length(); i++) {
                 if(answer.charAt(i) != answer.charAt(i)) {          // Check each chars in the strings and see if they are the same
@@ -85,7 +104,6 @@ public class Sphinx extends Enemy implements InventoryManagement, java.io.Serial
                 }
             }
         }
-
         return true;
     }
 

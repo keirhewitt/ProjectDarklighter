@@ -27,30 +27,9 @@ public class Player extends Character implements InventoryManagement, java.io.Se
         super(name, type);
         current_xp = 1;
         setInventory(28);     // PLEASE CHANGE THIS BACK (16)
-        pre_populate_player();
         religion = new Religion();
         known_formulas = new ArrayList<>();
         alchemy = new Alchemy();
-    }
-
-    /**
-     * Pre-populate Player character so they start with some stuff
-     */
-    public void pre_populate_player() {
-
-        Weapon loot_weapon = return_levelled_weapon_item();
-        add_to_inventory(loot_weapon);
-        setEquipped_weapon(loot_weapon);
-
-        Armour loot_armour = return_levelled_armour_item();
-        add_to_inventory(loot_armour);
-        quick_equip(loot_armour);
-
-        Item loot_heal_item = getInventory().loot_random_healing_item();
-        if (loot_heal_item != null) {
-            add_to_inventory(loot_heal_item);
-        }
-
     }
 
     /**
@@ -261,7 +240,7 @@ public class Player extends Character implements InventoryManagement, java.io.Se
     public boolean at_next_door() {
         if (current_room.getNext_door() == null) {
             return false;
-         }else if (current_room.check_tile(current_pos_x, current_pos_y) == 2
+         } else if (current_room.check_tile(current_pos_x, current_pos_y) == 2
                 && this.current_pos_x == current_room.getNext_door()[0][0] && this.current_pos_y == current_room.getNext_door()[0][1] ) {
             return true;
         }
@@ -297,21 +276,6 @@ public class Player extends Character implements InventoryManagement, java.io.Se
 
     public Alchemy get_alchemy() { return alchemy; }
 
-
-    /**
-     * Returns true if the player has any healing items in their inventory
-     * False if not
-     * @return - true or false
-     */
-    public boolean has_healing_items() {
-        for (Item i: getInventory().return_inventory()) {
-            if (i.isHealing_item()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public Scripture get_active_scripture() { return getReligion().getActive(); }
 
     /**
@@ -341,18 +305,15 @@ public class Player extends Character implements InventoryManagement, java.io.Se
      * @param item
      */
     public void has_used(Item item) {
-        boolean duplicate = false;
         for (Item i: getInventory().return_inventory()) {
-            if (i.getName().equals(item.getName()) && i.get_weight_value() == item.get_weight_value() && i.getValue() == item.getValue()) {
-                if (i.getQuantity() > 1) {
-                    duplicate = true;
-                    i.decreaseQuantity(1);
-                }
+            if (getInventory().check_duplicate(i)) {
+                getInventory().return_inventory()
+                        .get(getInventory().return_inventory().indexOf(i))
+                        .decreaseQuantity(1);
+                return;     // If Item was duplicate, reduce quantity and exit function
             }
         }
-        if (duplicate == false) {
-            remove_from_inventory(item);
-        }
+        remove_from_inventory(item);
     }
 
     /**
@@ -369,8 +330,30 @@ public class Player extends Character implements InventoryManagement, java.io.Se
             } else if (((Armour) item).headArmour()) {
                 this.equipHeadArmour((Armour) item);
             }
-        }  else if (item instanceof Weapon) {
+        } else if (item instanceof Weapon) {
             this.setEquipped_weapon((Weapon) item);
+        }
+    }
+
+    /**
+     * Determine the type of item and remove it appropriately
+     * @param item
+     */
+    public void unequip_item(Item item) {
+        if (item instanceof Shield) {
+            Darklighter.player.unequip_shield();                 // If shield armour, unequip
+        } else if (item instanceof Armour) {
+            if (((Armour) item).headArmour()) {
+                Darklighter.player.unequip_head_armour();        // If head armour, unequip
+            } else {
+                Darklighter.player.unequip_chest_armour();       // If chest armour, unequip
+            }
+        } else if (item instanceof Weapon) {
+            if (Darklighter.player.getOff_hand().equals(item)) { // If the weapon is in off-hand
+                Darklighter.player.set_off_hand(null);           // Set off-hand to null (dual wield)
+            } else {
+                Darklighter.player.unequip_weapon();             // If in main_hand, just unequip it
+            }
         }
     }
 
@@ -440,6 +423,12 @@ public class Player extends Character implements InventoryManagement, java.io.Se
 
     /**
      * Overloaded version of 'add_to_inventory' - for adding multiple of one item
+     *
+     * Example: If adding 4 items and only 2 can be added (inventory limit/weight limit etc.)
+     *   -> THEN.... return the number that cannot be added: i.e. 2
+     *
+     * If all are added OK then return 0
+     * If no space for any of the items, return -1
      * @param item
      * @param number
      * @return
@@ -447,7 +436,7 @@ public class Player extends Character implements InventoryManagement, java.io.Se
     public int add_to_inventory(Item item, int number) {
         int remainder = 0;
         if (getInventory().getEmpty_slots() >= 1) {
-            remainder = getInventory().addToInventory(item, number);
+            remainder = getInventory().addToInventory(item, number);   // Get number of items left over
         } else {
             System.out.println("No space in inventory to add " + item.getName() + "!");
             return -1;

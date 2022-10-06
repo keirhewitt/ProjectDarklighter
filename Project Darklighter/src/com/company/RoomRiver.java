@@ -143,6 +143,8 @@ public class RoomRiver extends Room {
                     System.out.print("< "+IO.T_Y +"X"+IO.T_RS +" > ");
                 } else if (i==3 && j==3) {
                     System.out.print("| " + tiles[i][j] + " | ");
+                } else if (i==3) {
+                    System.out.print(IO.T_BL+"~ " + "~" + " ~ "+IO.T_RS);
                 } else {
                     System.out.print("< " + tiles[i][j] + " > ");
                 }

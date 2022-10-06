@@ -17,6 +17,7 @@ public class Darklighter  implements java.io.Serializable{
     public static final Scanner INPUT = new Scanner(System.in);
     public static Encounter encounter = new Encounter();
     public static DB_ db_ = new DB_();
+    public static Dice d1 = new Dice();
 
     public static Player player = null;
     public static String selection = "";
@@ -264,13 +265,14 @@ public class Darklighter  implements java.io.Serializable{
     public static void next_room() {
         if (room_number < dungeon.get_size()) {
             room_number += 1;
+            Room next_room = dungeon.get_room(room_number);
+            if (!next_room.enter_room()) {
+                player.add_xp(room_number*10);
+            }
         } else {
+            System.out.println("You are in the final room.");
+        }
 
-        }
-        Room next_room = dungeon.get_room(room_number);
-        if (!next_room.enter_room()) {
-            player.add_xp(room_number*10);
-        }
     }
 
     /**
@@ -280,7 +282,7 @@ public class Darklighter  implements java.io.Serializable{
         if (room_number > 1) {
             room_number -= 1;
             Room prev_room = dungeon.get_room(room_number);
-            prev_room.enter_room();
+            prev_room.return_to_room();
         } else {
             System.out.println("You cannot leave this place!");
         }
@@ -313,8 +315,8 @@ public class Darklighter  implements java.io.Serializable{
 
         if (encounter_type == 1) {
 
-            //int chance_encounter = db_.random_loot_chance(6);
-            int chance_encounter = 1;
+            int chance_encounter = db_.random_loot_chance(6);
+            //int chance_encounter = 1;
 
             switch (chance_encounter) {
                 case 1:                                                     // Fight
@@ -370,6 +372,7 @@ public class Darklighter  implements java.io.Serializable{
         boolean combat = true;
         boolean player_turn = false;
         boolean enemy_turn = false;
+        boolean combat_continued = false;
         int p_roll = 0;
         int e_roll = 0;
         int choice = 0;
@@ -394,7 +397,10 @@ public class Darklighter  implements java.io.Serializable{
                 System.out.println();
 
                 IO.display_player_info();
-                player.decrease_active_status_effects();                // decreases active status effects
+
+                if (combat_continued) {
+                    player.decrease_active_status_effects();                // decreases active status effects
+                }
 
                 System.out.println();
                 IO.show_combat_information(player, enemy);
@@ -418,6 +424,7 @@ public class Darklighter  implements java.io.Serializable{
 
                         enemy_turn = true;
                         player_turn = false;
+                        combat_continued=true;
                         break;
 
                     // Heal
@@ -425,12 +432,17 @@ public class Darklighter  implements java.io.Serializable{
                         IO.show_player_healing_items(player);
                         enemy_turn = true;
                         player_turn = false;
+                        combat_continued=true;
                         break;
                         // Change Weapon
                     case 3:
-                        IO.show_player_weapons(player);
+                        if (!IO.show_player_weapons(player)) { // If player doesn't have other weapons, will remain player's turn.
+                            combat_continued=false; // Set this to false so status effects do not activate on reloading the player's turn.
+                            break;
+                        }
                         enemy_turn = true;
                         player_turn = false;
+                        combat_continued=true;
                         break;
                         // Flee Attempt
                     case 4:
@@ -450,10 +462,9 @@ public class Darklighter  implements java.io.Serializable{
 
                 IO.display_enemy_info(enemy);
 
-                enemy.decrease_active_status_effects();
-                IO.show_combat_information(player, enemy);
-
-                Thread.sleep(2000);
+                if (combat_continued) {
+                    enemy.decrease_active_status_effects();
+                }
 
                 // Check if enemy has died each loop
                 // If so, add xp reward, end turn&combat
@@ -468,6 +479,10 @@ public class Darklighter  implements java.io.Serializable{
 
                 } else {
 
+                    IO.show_combat_information(player, enemy);
+
+                    Thread.sleep(2000);
+
                     int enemy_choice = enemy.roll_combat_choice();
 
                     if (enemy_choice == 1) {
@@ -476,6 +491,7 @@ public class Darklighter  implements java.io.Serializable{
                         if (player.hasDied()) { combat = false; }
                         enemy_turn = false;
                         player_turn = true;
+                        combat_continued=true;
 
                     } else if (enemy_choice == 2) {
 
@@ -486,12 +502,14 @@ public class Darklighter  implements java.io.Serializable{
 
                         enemy_turn = false;
                         player_turn = true;
+                        combat_continued=true;
 
                     } else if (enemy_choice == 3) {
                         System.out.println(enemy.getName() + " manages to flee!");
 
                         combat = false;
                         enemy_turn = false;
+                        combat_continued=false;
 
                     }
                     enemy_turn = false;
@@ -502,6 +520,72 @@ public class Darklighter  implements java.io.Serializable{
             }
         }
 
+    }
+
+    /**
+     * Pre-populate Player character so they start with some stuff
+     */
+    public void pre_populate_player(Player pl) {
+
+        Weapon loot_weapon = db_.return_levelled_weapon_item(pl);
+        pl.add_to_inventory(loot_weapon);
+        pl.setEquipped_weapon(loot_weapon);
+
+        Armour loot_armour = pl.return_levelled_armour_item();
+        pl.add_to_inventory(loot_armour);
+        pl.quick_equip(loot_armour);
+
+        Item loot_heal_item = pl.getInventory().loot_random_healing_item();
+        if (loot_heal_item != null) {
+            pl.add_to_inventory(loot_heal_item);
+        }
+
+    }
+
+    /**
+     */
+    public void enemy_pre_population(Enemy enemy) {
+        double gold_chance = d1.chance_roll();
+        double weapon_chance = d1.chance_roll();
+        double healing_chance = d1.chance_roll();
+        double valuable_item_chance = d1.chance_roll();
+        double armour_chance = d1.chance_roll();
+        double food_chance = d1.chance_roll();
+
+        if (valuable_item_chance < 0.06) {
+            Item loot_valuable_item = enemy.getInventory().loot_random_valuable_item();
+            if (loot_valuable_item != null) {
+                enemy.add_to_inventory(loot_valuable_item);
+            }
+        }
+        if (armour_chance < 0.12) {
+            Armour loot_armour = enemy.return_levelled_armour_item();
+            enemy.add_to_inventory(loot_armour);
+            if (loot_armour.headArmour()) {
+                enemy.equipHeadArmour(loot_armour);
+            } else {
+                enemy.equipChestArmour(loot_armour);
+            }
+        }
+        if (weapon_chance < 0.30) {
+            Weapon loot_weapon = db_.return_levelled_weapon_item(enemy);
+            enemy.add_to_inventory(loot_weapon);
+            enemy.setEquipped_weapon(loot_weapon);
+
+        }
+        if (healing_chance < 0.75) {
+            Item loot_heal_item = enemy.getInventory().loot_random_healing_item();
+            if (loot_heal_item != null) {
+                enemy.add_to_inventory(loot_heal_item);
+            }
+        }
+        if (gold_chance < 0.85) {
+            Currency currency_loot = new Currency(d1.manualDiceRoll(40));
+            enemy.add_to_inventory(currency_loot);
+        }
+        if (food_chance < 0.90) {
+            // Add later
+        }
     }
 
     // Serializes all player data

@@ -13,7 +13,7 @@ public class Dice implements java.io.Serializable {
 
     // Manual dice roll, return num between 1 - (max)
     public int manualDiceRoll(int max) {
-        if (max < 0) { return 0; }
+        if (max <= 0) { return 0; }
         if (max == 1) { return 1; }
         return rand.nextInt(max) + 1;
     }
